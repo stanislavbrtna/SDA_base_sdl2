@@ -27,3 +27,6 @@ sim_cz:
 
 sim_en:
 	$(CC) $(CFLAGS) $(SRCS) $(LIBS) $(DEFINES) -DLANG_EN -o BIN/SDA_OS_sim_eng
+
+update:
+	git submodule update --init --recursive --force --remote

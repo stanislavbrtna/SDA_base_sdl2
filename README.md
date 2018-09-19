@@ -11,7 +11,7 @@ You need to have C compiler installed on your machine and SDL2 library with its 
 
 Don't forget to update the submodules after pull:
 
-    git submodule update --init --recursive --force --remote
+    make update
 You also need to new config file from the example file:
 
     cp BIN/svp.cfg.example BIN/svp.cfg
