@@ -1,0 +1,10 @@
+border_color=0
+text_color=224
+fill_color=57083
+active_color=46623
+background_color=65535
+alarm_fname=clock.svs
+alarm_min=13
+alarm_hour=17
+alarm_valid=1
+sleep_time=5
