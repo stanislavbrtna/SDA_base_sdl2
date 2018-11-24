@@ -80,21 +80,31 @@ svp_file fp;
 uint8_t svp_fread_u8(svp_file *fp) {
   uint8_t x;
 
-  fread(&x, sizeof(x), 1, fp->fPointer);
+  if(fread(&x, sizeof(x), 1, fp->fPointer) == 0){
+    // we perhaps read from empty stream in some parser, the error messages
+    // spammed the stdout, they are temporarily disabled
+    //printf("fread error!\n");
+  }
   return x;
 }
 
 uint8_t svp_fread(svp_file *fp, void *target, uint32_t size) {
-  fread(target, size, 1, fp->fPointer);
+  if(fread(target, size, 1, fp->fPointer) == 0) {
+    //printf("fread error! (2)\n");
+  }
   return 0;
 }
 
 void svp_fwrite_u8(svp_file *fp, uint8_t val) {
-  fwrite(&val, sizeof(uint8_t), 1, fp->fPointer);
+  if(fwrite(&val, sizeof(uint8_t), 1, fp->fPointer) == 0){
+    //printf("fwrite error! (1)\n");
+  }
 }
 
 void svp_fwrite(svp_file *fp, void *target, uint32_t size) {
-  fwrite(target, size, 1, fp->fPointer);
+  if(fwrite(target, size, 1, fp->fPointer) == 0){
+    //printf("fwrite error! (2)\n");
+  }
 }
 
 uint8_t svp_feof(svp_file *fp) {
@@ -142,8 +152,8 @@ uint8_t svp_rename(uint8_t *source, uint8_t *dest) {
 }
 
 
-  uint8_t exten[8];
-  static DIR *d;
+uint8_t exten[8];
+static DIR *d;
 
 
 uint8_t svp_strcmp_ext(uint8_t *s1, uint8_t *s_ext) {
@@ -252,13 +262,19 @@ uint16_t svp_strlen(uint8_t *str) {
 }
 
 uint8_t svp_chdir(uint8_t* path) {
-  chdir(path);
-  return 0;
+  if (chdir(path)){
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 uint8_t svp_getcwd(uint8_t* buf, uint16_t len) {
-  getcwd(buf, len);
-  return 0;
+  if (getcwd(buf, len)){
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 uint8_t svp_unlink(uint8_t* path) {

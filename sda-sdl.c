@@ -140,6 +140,38 @@ void system_clock_set_normal(void){
   return;
 }
 
+void sda_internal_pin_def(uint8_t pinNum, uint8_t pinType, uint8_t pull) {
+  printf("sda_internal_pin_def: pin:%u, type: %u, pull%u\n", pinNum, pinType, pull);
+}
+
+void sda_internal_pin_set(uint8_t pinNum, uint8_t val) {
+  printf("sda_internal_pin_set: pin:%u, val: %u\n", pinNum, val);
+}
+
+uint8_t sda_internal_pin_get(uint8_t pinNum) {
+  printf("sda_internal_pin_get: pin:%u, returning zero.", pinNum);
+  return 0;
+}
+
+
+void sda_external_pin_def(uint8_t pinNum, uint8_t pinType, uint8_t pull) {
+  printf("sda_external_pin_def: pin:%u, type: %u, pull%u\n", pinNum, pinType, pull);
+}
+
+void sda_external_pin_set(uint8_t pinNum, uint8_t val) {
+  printf("sda_external_pin_set: pin:%u, val: %u\n", pinNum, val);
+}
+
+uint8_t sda_external_pin_get(uint8_t pinNum) {
+  printf("sda_external_pin_get: pin:%u, returning zero.", pinNum);
+  return 0;
+}
+
+float sda_external_ADC_get() {
+  printf("sda_external_ADC_get: returning 8.88");
+  return 8.88;
+}
+
 // acoustic alarm
 void svp_beep() {
   printf("beep\n\a");
