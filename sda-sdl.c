@@ -3,6 +3,10 @@
 #include <time.h>
 #include "SDA_OS/SDA_OS.h"
 
+#ifdef WEBTARGET
+#include <emscripten.h>
+#endif
+
 // sdl window dimensions
 const int SCREEN_WIDTH = 320;
 const int SCREEN_HEIGHT = 552;
@@ -21,7 +25,12 @@ volatile uint8_t tickLock;
 
 eventType pwr_bttn;
 
+static int quit;
+static uint8_t preload;
+static uint8_t *preload_fname;
+
 SDL_Renderer* gRenderer;
+SDL_Texture * gTexture;
 
 uint8_t draw_flag;
 
@@ -299,241 +308,266 @@ void fb_clear(){
 }
 
 // renders swfb
-void fb_copy_to_renderer(){
-  int a,i;
 
-  uint8_t r,g,b;
+void fb_copy_to_renderer() {
+  int a,i;
+  SDL_Rect dstrect;
+  uint8_t r, g, b;
+  Uint32* pixels = 0;
+  int pitch = 0;
+  int format;
+
+  SDL_LockTexture(gTexture, 0, (void**)&pixels, &pitch);
 
   for (a = 0; a < 320; a++) {
     for (i = 0; i < 480; i++) {
-
       r = (uint8_t)(((float)((sw_fb[a][i]>>11)&0x1F)/32)*256);
       g = (uint8_t)(((float)(((sw_fb[a][i]&0x07E0)>>5)&0x3F)/64)*256);
       b = (uint8_t)(((float)(sw_fb[a][i]&0x1F)/32)*256);
 
       if (svpSGlobal.lcdState == LCD_OFF) {
-        SDL_SetRenderDrawColor(gRenderer, 18, 18, 18, SDL_ALPHA_OPAQUE);
-      } else {
-        SDL_SetRenderDrawColor(gRenderer, r, g, b, SDL_ALPHA_OPAQUE);
+        r = 18;
+        g = 18;
+        b = 18;
       }
 
-      SDL_RenderDrawPoint(gRenderer, a, i);
+      pixels[i * 320 + a] = r << 24 | g << 16 | b << 8 | SDL_ALPHA_OPAQUE;
     }
   }
+
+  SDL_UnlockTexture(gTexture);
+
+  dstrect.x = 0;
+  dstrect.y = 0;
+  dstrect.w = 320;
+  dstrect.h = 480;
+
+  SDL_RenderCopy(gRenderer, gTexture, NULL, &dstrect);
+}
+
+
+uint16_t btn_pos_x[6];
+uint16_t btn_pos_y[6];
+
+void sda_sim_loop() {
+  static time_t ti;
+  static struct tm * timeinfo;
+  //time init
+
+  svpSGlobal.touchValid = 0;
+  //touch misc
+  static uint8_t touchPrev;
+  static uint8_t touchNow;
+  static uint8_t oldsec;
+  static uint8_t dateSetup;
+  static uint8_t LdLck;
+  static int old_ticks;
+  static uint8_t button_flag;
+  static uint8_t button_flag_prev;
+  SDL_Event e;
+
+  static uint32_t timer_help;
+
+  pwr_bttn = EV_PRESSED;
+
+  ti = time(0);
+  timeinfo = localtime(&ti);
+
+  sda_irq_update_timestruct(
+    timeinfo->tm_year + 1900,
+    timeinfo->tm_mon + 1,
+    timeinfo->tm_mday,
+    timeinfo->tm_wday,
+    timeinfo->tm_hour,
+    timeinfo->tm_min,
+    timeinfo->tm_sec
+  );
+
+  while(SDL_PollEvent(&e) != 0) {
+    if(e.type == SDL_QUIT) {
+      quit = 1;
+    }
+
+    if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+      touchNow = 1;
+      svpSGlobal.touchX = LCD_rotr_x((uint16_t)e.button.x, (uint16_t)e.button.y);
+      svpSGlobal.touchY = LCD_rotr_y((uint16_t)e.button.x, (uint16_t)e.button.y);
+    } else {
+      touchNow = 0;
+    }
+  }
+
+  if ((touchNow == 1) && (touchPrev == 0)) {
+    svpSGlobal.touchType = EV_PRESSED;
+    svpSGlobal.touchValid = 1;
+  }
+
+  if ((touchNow == 0) && (touchPrev == 1)) {
+    svpSGlobal.touchType = EV_RELEASED;
+    svpSGlobal.touchValid = 1;
+  }
+  if ((touchNow == 1) && (touchPrev == 1)) {
+    svpSGlobal.touchType = EV_HOLD;
+    svpSGlobal.touchValid = 1;
+  }
+  if ((touchNow == 0) && (touchPrev == 0)) {
+    svpSGlobal.touchType = EV_NONE;
+    svpSGlobal.touchValid = 0;
+  }
+  touchPrev=touchNow;
+
+  // svsTimer emulation
+  if (timer_help < SDL_GetTicks()) {
+    timer_help = SDL_GetTicks();
+    if (svsCounter > 10) {
+      svsCounter -= 10;
+    } else {
+      svsCounter = 0;
+    }
+  }
+
+  // hw buttons handlingbuttons
+
+  button_flag = 0;
+
+  for (int i = 0; i < 6; i++) {
+    if((svpSGlobal.touchX > btn_pos_x[i]) && (svpSGlobal.touchX < (btn_pos_x[i] + 32))
+    && (svpSGlobal.touchY > btn_pos_y[i]) && (svpSGlobal.touchY < (btn_pos_y[i] + 32))) {
+      button_flag = 1;
+
+      if (svpSGlobal.keyEv[i] == EV_NONE) {
+        svpSGlobal.keyEv[i] = svpSGlobal.touchType;
+      }
+    } else {
+      svpSGlobal.keyEv[i] = EV_NONE;
+    }
+  }
+
+  button_flag_prev = button_flag;
+
+  //power button
+  if((svpSGlobal.touchX > 300) && (svpSGlobal.touchX < 309)
+     && (svpSGlobal.touchY > 496) && (svpSGlobal.touchY < 528)) {
+
+    if (svpSGlobal.touchType == EV_PRESSED) {
+      draw_flag = 1;
+      if(svpSGlobal.lcdState == LCD_OFF) {
+        svp_set_lcd_state(LCD_ON);
+        pwr_bttn = EV_PRESSED;
+      } else {
+        svp_set_lcd_state(LCD_OFF);
+        pwr_bttn = EV_NONE;
+      }
+    }
+  }
+
+  if(svpSGlobal.lcdState == LCD_OFF){
+    svpSGlobal.touchValid = 0;
+    svpSGlobal.touchType = EV_NONE;
+  }
+
+  // this is noramlly in an irq, but in simulator we don't care
+  svp_irq();
+
+  // remove the touch event if it is "out of screen"
+  if (svpSGlobal.touchY > 480) {
+    svpSGlobal.touchValid = 0;
+    svpSGlobal.touchType = EV_NONE;
+  }
+
+  // main loop
+  sda_main_loop();
+
+  // loading app from cmdline
+  if ((preload == 1) && (LdLck < 10)){
+    LdLck++;
+  } else {
+    if (LdLck == 10) {
+      printf("DevLoading: %s\n", preload_fname);
+      sdaSvmLaunch(preload_fname, 0);
+      LdLck = 20;
+    }
+  }
+
+  SDL_RenderClear(gRenderer);
+  fb_copy_to_renderer();
+  draw_flag = 0;
+  DrawSwButtons((gr2EventType *)svpSGlobal.keyEv, pwr_bttn);
+  SDL_RenderPresent(gRenderer);
 }
 
 
 int main(int argc, char *argv[]) {
-  int quit = 0;
   //events
-  SDL_Event e;
+
   SDL_Window* window = NULL;
   eventType touchEvPrev = RELEASED;
   //time
-  time_t ti;
-  struct tm * timeinfo;
+  quit = 0;
 
-  //time init
-  svpSGlobal.touchValid = 0;
-  //touch misc
-  uint8_t touchPrev;
-  uint8_t touchNow;
-  uint8_t oldsec = 0;
-  uint8_t dateSetup = 0;
-  uint8_t LdLck = 0;
-  int old_ticks = 0;
-  uint8_t button_flag = 0;
-  uint8_t button_flag_prev = 0;
+  btn_pos_x[0] = 32;
+  btn_pos_y[0] = 496;
 
-  uint32_t timer_help=0;
+  btn_pos_x[1] = 96;
+  btn_pos_y[1] = 496;
 
-  pwr_bttn = EV_PRESSED;
+  btn_pos_x[2] = 144;
+  btn_pos_y[2] = 485;
 
-  if (SDL_Init( SDL_INIT_VIDEO ) < 0) {
-    printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
-  } else {
-    // Create window
-    SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &window, &gRenderer) ;
-  }
+  btn_pos_x[3] = 144;
+  btn_pos_y[3] = 485 + 35;
 
-  if (gRenderer == NULL) {
-    printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
-    return 1;
-  }
+  btn_pos_x[4] = 192;
+  btn_pos_y[4] = 496;
+
+  btn_pos_x[5] = 256;
+  btn_pos_y[5] = 496;
+
+  SDL_Init( SDL_INIT_VIDEO );
+  SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &window, &gRenderer) ;
 
   fb_clear();
 
-  SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+  SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 0xFF);
   SDL_RenderClear(gRenderer);
+
+  gTexture = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 320, 480);
+
   srand(time(NULL));
+
   svpSGlobal.lcdState = LCD_ON;
 
   //lcd init
   LCD_init(319, 479, OR_NORMAL);
-
-  while (!quit) { // quit is handled only from SDL_QUIT
-    ti = time(0);
-    timeinfo = localtime(&ti);
-
-    sda_irq_update_timestruct(
-      timeinfo->tm_year + 1900,
-      timeinfo->tm_mon + 1,
-      timeinfo->tm_mday,
-      timeinfo->tm_wday,
-      timeinfo->tm_hour,
-      timeinfo->tm_min,
-      timeinfo->tm_sec
-    );
-
-    while(SDL_PollEvent(&e) != 0) {
-      if(e.type == SDL_QUIT) {
-        quit = 1;
-      }
-
-      if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-        touchNow = 1;
-        svpSGlobal.touchX = LCD_rotr_x((uint16_t)e.button.x, (uint16_t)e.button.y);
-        svpSGlobal.touchY = LCD_rotr_y((uint16_t)e.button.x, (uint16_t)e.button.y);
-      } else {
-        touchNow = 0;
-      }
-    }
-
-    if ((touchNow == 1) && (touchPrev == 0)) {
-      svpSGlobal.touchType = EV_PRESSED;
-      svpSGlobal.touchValid = 1;
-    }
-
-    if ((touchNow == 0) && (touchPrev == 1)) {
-      svpSGlobal.touchType = EV_RELEASED;
-      svpSGlobal.touchValid = 1;
-    }
-    if ((touchNow == 1) && (touchPrev == 1)) {
-      svpSGlobal.touchType = EV_HOLD;
-      svpSGlobal.touchValid = 1;
-    }
-    if ((touchNow == 0) && (touchPrev == 0)) {
-      svpSGlobal.touchType = EV_NONE;
-      svpSGlobal.touchValid = 0;
-    }
-    touchPrev=touchNow;
-
-    // svsTimer emulation
-    if (timer_help < SDL_GetTicks()) {
-      timer_help = SDL_GetTicks();
-      if (svsCounter > 10) {
-        svsCounter -= 10;
-      } else {
-        svsCounter = 0;
-      }
-    }
-
-    // hw buttons handlingbuttons
-
-    button_flag = 0;
-
-    uint16_t btn_pos_x[6];
-    uint16_t btn_pos_y[6];
-
-    btn_pos_x[0] = 32;
-    btn_pos_y[0] = 496;
-
-    btn_pos_x[1] = 96;
-    btn_pos_y[1] = 496;
-
-    btn_pos_x[2] = 144;
-    btn_pos_y[2] = 485;
-
-    btn_pos_x[3] = 144;
-    btn_pos_y[3] = 485 + 35;
-
-    btn_pos_x[4] = 192;
-    btn_pos_y[4] = 496;
-
-    btn_pos_x[5] = 256;
-    btn_pos_y[5] = 496;
+  draw_flag = 1;
 
 
-    for (int i = 0; i < 6; i++) {
-      if((svpSGlobal.touchX > btn_pos_x[i]) && (svpSGlobal.touchX < (btn_pos_x[i] + 32))
-      && (svpSGlobal.touchY > btn_pos_y[i]) && (svpSGlobal.touchY < (btn_pos_y[i] + 32))) {
-        button_flag = 1;
-
-        if (svpSGlobal.keyEv[i] == EV_NONE) {
-          svpSGlobal.keyEv[i] = svpSGlobal.touchType;
-        }
-      } else {
-        svpSGlobal.keyEv[i] = EV_NONE;
-      }
-    }
-
-    button_flag_prev = button_flag;
-
-
-    //power button
-    if((svpSGlobal.touchX > 300) && (svpSGlobal.touchX < 309)
-       && (svpSGlobal.touchY > 496) && (svpSGlobal.touchY < 528)) {
-
-      if (svpSGlobal.touchType == EV_PRESSED) {
-        draw_flag = 1;
-        if(svpSGlobal.lcdState == LCD_OFF) {
-          svp_set_lcd_state(LCD_ON);
-          pwr_bttn = EV_PRESSED;
-        } else {
-          svp_set_lcd_state(LCD_OFF);
-          pwr_bttn = EV_NONE;
-        }
-      }
-    }
-
-    if(svpSGlobal.lcdState == LCD_OFF){
-      svpSGlobal.touchValid = 0;
-      svpSGlobal.touchType = EV_NONE;
-    }
-
-    // this is noramlly in an irq, but in simulator we don't care
-    svp_irq();
-
-    // remove the touch event if it is "out of screen"
-    if (svpSGlobal.touchY > 480) {
-      svpSGlobal.touchValid = 0;
-      svpSGlobal.touchType = EV_NONE;
-    }
-
-    // main loop
-    sda_main_loop();
-
-    // loading app from cmdline
-    if ((argc == 2) && (LdLck < 10)){
-      LdLck++;
-    } else {
-      if (LdLck == 10) {
-        printf("DevLoading: %s\n", argv[1]);
-        sdaSvmLaunch(argv[1], 0);
-        LdLck = 20;
-      }
-    }
-
-    // draw emulated buttons
-    DrawSwButtons((gr2EventType *)svpSGlobal.keyEv, pwr_bttn);
-
-    if (draw_flag == 1) {
-#ifdef SIM_SHOW_REDRAW
-      printf("Redraw\n");
-#endif
-      fb_copy_to_renderer();
-      draw_flag = 0;
-      SDL_RenderPresent(gRenderer);
-      SDL_RenderClear(gRenderer);
-      SDL_Delay(1);
-    } else {
-#ifdef SIM_SHOW_REDRAW
-      printf("NOT redraw\n");
-#endif
-      SDL_Delay(48);
-    }
-    SDL_Delay(25);
+  #ifdef WEBTARGET
+    preload = 0;
+  #else
+  // loading app from cmdline
+  if (argc == 2){
+    preload = 1;
+    preload_fname = argv[1];
+  } else {
+    preload = 0;
   }
+  #endif
+
+  #ifdef WEBTARGET
+  printf("SDA_OS for the internetz!\n");
+  emscripten_set_main_loop(sda_sim_loop, 30, 1);
+  #else
+  uint32_t sdl_time;
+  while (!quit) { // quit is handled only from SDL_QUIT
+    sdl_time = SDL_GetTicks();
+    sda_sim_loop();
+
+    if (SDL_GetTicks() - sdl_time < 33) {
+      SDL_Delay(33 - (SDL_GetTicks() - sdl_time));
+    }
+  }
+  #endif
 
   // Destroy window
   SDL_DestroyRenderer(gRenderer);

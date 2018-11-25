@@ -3,6 +3,10 @@ CC = gcc
 # define any compile-time flags
 CFLAGS = -std=c99 -O3
 
+EMCFLAGS = -std=c99 -o2 --llvm-opts 2
+
+EMSETTINGS = --preload-file webdata@ -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1
+
 LIBS = -lSDL2 -lm
 
 DEFINES = -DPC -DPLATFORM_PC -DPPM_SUPPORT_ENABLED
@@ -27,6 +31,12 @@ sim_cz:
 
 sim_en:
 	$(CC) $(CFLAGS) $(SRCS) $(LIBS) $(DEFINES) -DLANG_EN -o BIN/SDA_OS_sim_eng
+
+sim_emcc:
+	emcc $(SRCS) $(EMCFLAGS) $(LIBS) $(DEFINES) -DLANG_EN -DWEBTARGET -DTOKEN_CACHE_DISABLED -o binweb/SDA_OS.html $(EMSETTINGS)
+
+sim_emcc_cz:
+	emcc $(SRCS) $(EMCFLAGS) $(LIBS) $(DEFINES) -DLANG_EN -DWEBTARGET -DTOKEN_CACHE_DISABLED -o binweb/SDA_OS.html $(EMSETTINGS)
 
 update:
 	git submodule update --init --recursive --force --remote

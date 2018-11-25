@@ -34,6 +34,11 @@ Run it from terminal to get additional debug output.
 ### Typical setup
 Currently there is no Windows version, I tried compiling it with cygwin and SDL2 and it was sort-of working, but unusable due to file read/write errors. Just use Linux.
 
+### Compiling this SDA_OS base with emscripten
+The SDL2 SDA_OS base can now be compiled with emscripten for running in the web browser. It is currently work in progress. You can try it with: (You will need working emscripten on your system.)
+
+    make sim_emcc
+
 ### Writing applications for SDA_OS
 If you want to develop applications for the SDA_OS, you can start with [SDA_OS readme](https://github.com/stanislavbrtna/SDA_OS/blob/master/README.md) and [SVS readme](https://github.com/stanislavbrtna/svs-script/blob/master/SYNTAX.md). You can also look at applications in SDA apps repository.
 
