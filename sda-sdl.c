@@ -32,6 +32,8 @@ static uint8_t *preload_fname;
 SDL_Renderer* gRenderer;
 SDL_Texture * gTexture;
 
+pwrModeType oldPowerMode;
+
 uint8_t draw_flag;
 
 // software framebuffer
@@ -475,6 +477,16 @@ void sda_sim_loop() {
     svpSGlobal.touchType = EV_NONE;
   }
 
+  // check for power state change and display it
+  if (oldPowerMode != svpSGlobal.powerMode) {
+    if (svpSGlobal.powerMode == SDA_PWR_MODE_SLEEP) {
+      printf("SDA entered SLEEP state.\n");
+    } else {
+      printf("SDA waked from sleep and is now in NORMAL state.\n");
+    }
+  }
+  oldPowerMode = svpSGlobal.powerMode;
+
   // main loop
   sda_main_loop();
 
@@ -504,6 +516,7 @@ int main(int argc, char *argv[]) {
   eventType touchEvPrev = RELEASED;
   //time
   quit = 0;
+  oldPowerMode = SDA_PWR_MODE_NORMAL;
 
   btn_pos_x[0] = 32;
   btn_pos_y[0] = 496;
