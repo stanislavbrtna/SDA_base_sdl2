@@ -3,7 +3,7 @@ CC = gcc
 # define any compile-time flags
 CFLAGS = -std=c99 -O3
 
-EMCFLAGS = -std=c99 -o2 --llvm-opts 2
+EMCFLAGS = -std=c99 -O0 --js-opts 0
 
 EMSETTINGS = --preload-file webdata@ -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1
 
