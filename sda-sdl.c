@@ -2,14 +2,18 @@
 #include <stdio.h>
 #include <time.h>
 #include "SDA_OS/SDA_OS.h"
+#include "sda-image.h"
 
 #ifdef WEBTARGET
 #include <emscripten.h>
 #endif
 
 // sdl window dimensions
-const int SCREEN_WIDTH = 320;
-const int SCREEN_HEIGHT = 552;
+const int SCREEN_WIDTH = 455;
+const int SCREEN_HEIGHT = 733;
+
+#define SIM_X 67
+#define SIM_Y 58
 
 //==========global svp vars=====
 svpStatusStruct svpSGlobal;
@@ -32,6 +36,8 @@ static uint8_t *preload_fname;
 SDL_Renderer* gRenderer;
 SDL_Texture * gTexture;
 
+SDL_Texture * bgTexture;
+
 pwrModeType oldPowerMode;
 
 uint8_t draw_flag;
@@ -40,6 +46,9 @@ uint8_t draw_flag;
 uint16_t sw_fb[320][480];
 
 uint8_t calibrationFlag;
+
+uint16_t btn_pos_x[6];
+uint16_t btn_pos_y[6];
 
 void svp_set_calibration_data(touchCalibDataStruct input) {
   return;
@@ -237,9 +246,9 @@ void DrawButton2(int x, int y, gr2EventType act){
   rect.h = 32;
 
   if (act != EV_NONE){
-    SDL_SetRenderDrawColor(gRenderer, 255, 0, 0, 0xFF);
+    SDL_SetRenderDrawColor(gRenderer, 255, 0, 0, 0xAA);
   } else {
-    SDL_SetRenderDrawColor(gRenderer, 0, 0, 255, 0xFF);
+    SDL_SetRenderDrawColor(gRenderer, 0, 0, 255, 0xAA);
   }
 
   SDL_RenderFillRect(gRenderer, &rect);
@@ -250,28 +259,11 @@ void DrawButton2(int x, int y, gr2EventType act){
 void DrawSwButtons(gr2EventType *btn, gr2EventType btn_off){
   SDL_Rect rect;
 
-  rect.x = 0;
-  rect.y = 480;
-  rect.w = 319;
-  rect.h = 71;
+  for(int i = 0; i < 6; i++) {
+    DrawButton(btn_pos_x[i], btn_pos_y[i], (int) btn[i]);
+  }
 
-  SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-
-  SDL_RenderFillRect(gRenderer, &rect);
-
-  DrawButton(32, 496, (int) btn[0]);
-
-  DrawButton(96, 496, (int) btn[1]);
-
-  DrawButton(144, 485, (int) btn[2]);
-
-  DrawButton(144, 485 + 35, (int) btn[3]);
-
-  DrawButton(192, 496, (int) btn[4]);
-
-  DrawButton(256, 496, (int) btn[5]);
-
-  DrawButton2(300, 496, (int) btn_off);
+  DrawButton2(393, 616, (int) btn_off);
 
 }
 
@@ -339,17 +331,51 @@ void fb_copy_to_renderer() {
 
   SDL_UnlockTexture(gTexture);
 
-  dstrect.x = 0;
-  dstrect.y = 0;
+  dstrect.x = SIM_X;
+  dstrect.y = SIM_Y;
   dstrect.w = 320;
   dstrect.h = 480;
 
   SDL_RenderCopy(gRenderer, gTexture, NULL, &dstrect);
 }
 
+void fb_render_bg() {
+  int a,i;
+  SDL_Rect dstrect;
+  uint8_t r, g, b;
+  Uint32* pixels = 0;
+  int pitch = 0;
+  int format;
+  char *data;
+  uint8_t pixel[3];
 
-uint16_t btn_pos_x[6];
-uint16_t btn_pos_y[6];
+  SDL_LockTexture(bgTexture, 0, (void**)&pixels, &pitch);
+
+  data = header_data;
+
+  for (a = 0; a < 455; a++) {
+    for (i = 0; i < 733; i++) {
+
+      HEADER_PIXEL(data, pixel);
+
+      r = pixel[0];
+      g = pixel[1];
+      b = pixel[2];
+
+      pixels[a * 733 + i] = r << 24 | g << 16 | b << 8 | SDL_ALPHA_OPAQUE;
+    }
+  }
+
+  SDL_UnlockTexture(bgTexture);
+
+  dstrect.x = 0;
+  dstrect.y = 0;
+  dstrect.w = 455;
+  dstrect.h = 733;
+
+  SDL_RenderCopy(gRenderer, bgTexture, NULL, &dstrect);
+}
+
 
 void sda_sim_loop() {
   static time_t ti;
@@ -392,8 +418,8 @@ void sda_sim_loop() {
 
     if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
       touchNow = 1;
-      svpSGlobal.touchX = LCD_rotr_x((uint16_t)e.button.x, (uint16_t)e.button.y);
-      svpSGlobal.touchY = LCD_rotr_y((uint16_t)e.button.x, (uint16_t)e.button.y);
+      svpSGlobal.touchX = LCD_rotr_x((uint16_t)e.button.x - SIM_X, (uint16_t)e.button.y - SIM_Y);
+      svpSGlobal.touchY = LCD_rotr_y((uint16_t)e.button.x - SIM_X, (uint16_t)e.button.y - SIM_Y);
     } else {
       touchNow = 0;
     }
@@ -433,8 +459,8 @@ void sda_sim_loop() {
   button_flag = 0;
 
   for (int i = 0; i < 6; i++) {
-    if((svpSGlobal.touchX > btn_pos_x[i]) && (svpSGlobal.touchX < (btn_pos_x[i] + 32))
-    && (svpSGlobal.touchY > btn_pos_y[i]) && (svpSGlobal.touchY < (btn_pos_y[i] + 32))) {
+    if((e.button.x > btn_pos_x[i]) && (e.button.x < (btn_pos_x[i] + 32))
+    && (e.button.y > btn_pos_y[i]) && (e.button.y < (btn_pos_y[i] + 32))) {
       button_flag = 1;
 
       if (svpSGlobal.keyEv[i] == EV_NONE) {
@@ -448,8 +474,8 @@ void sda_sim_loop() {
   button_flag_prev = button_flag;
 
   //power button
-  if((svpSGlobal.touchX > 300) && (svpSGlobal.touchX < 309)
-     && (svpSGlobal.touchY > 496) && (svpSGlobal.touchY < 528)) {
+  if((e.button.x > 380) && (e.button.x < 380 + 32)
+     && (e.button.y > 590) && (e.button.y < 600 + 45)) {
 
     if (svpSGlobal.touchType == EV_PRESSED) {
       draw_flag = 1;
@@ -502,9 +528,10 @@ void sda_sim_loop() {
   }
 
   SDL_RenderClear(gRenderer);
+  fb_render_bg();
   fb_copy_to_renderer();
   draw_flag = 0;
-  DrawSwButtons((gr2EventType *)svpSGlobal.keyEv, pwr_bttn);
+  //DrawSwButtons((gr2EventType *)svpSGlobal.keyEv, pwr_bttn);
   SDL_RenderPresent(gRenderer);
 }
 
@@ -518,23 +545,23 @@ int main(int argc, char *argv[]) {
   quit = 0;
   oldPowerMode = SDA_PWR_MODE_NORMAL;
 
-  btn_pos_x[0] = 32;
-  btn_pos_y[0] = 496;
+  btn_pos_x[0] = 89 - 16;
+  btn_pos_y[0] = 650- 16;
 
-  btn_pos_x[1] = 96;
-  btn_pos_y[1] = 496;
+  btn_pos_x[1] = 155- 16;
+  btn_pos_y[1] = 650- 16;
 
-  btn_pos_x[2] = 144;
-  btn_pos_y[2] = 485;
+  btn_pos_x[2] = 227- 16;
+  btn_pos_y[2] = 622- 16;
 
-  btn_pos_x[3] = 144;
-  btn_pos_y[3] = 485 + 35;
+  btn_pos_x[3] = 227- 16;
+  btn_pos_y[3] = 676- 16;
 
-  btn_pos_x[4] = 192;
-  btn_pos_y[4] = 496;
+  btn_pos_x[4] = 298- 16;
+  btn_pos_y[4] = 650- 16;
 
-  btn_pos_x[5] = 256;
-  btn_pos_y[5] = 496;
+  btn_pos_x[5] = 362- 16;
+  btn_pos_y[5] = 650- 16;
 
   SDL_Init( SDL_INIT_VIDEO );
   SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &window, &gRenderer) ;
@@ -545,6 +572,8 @@ int main(int argc, char *argv[]) {
   SDL_RenderClear(gRenderer);
 
   gTexture = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 320, 480);
+
+  bgTexture = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 455, 733);
 
   srand(time(NULL));
 
