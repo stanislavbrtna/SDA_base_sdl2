@@ -38,5 +38,10 @@ sim_emcc:
 sim_emcc_cz:
 	emcc $(SRCS) $(EMCFLAGS) $(LIBS) $(DEFINES) -DLANG_EN -DWEBTARGET -DTOKEN_CACHE_DISABLED -o binweb/SDA_OS.html $(EMSETTINGS)
 
+scan-build:
+	scan-build $(CC) $(CFLAGS) $(SRCS) $(LIBS) $(DEFINES) -DLANG_CZ -o BIN/SDA_OS_sim_cz
+
+#view hotfix PYTHONPATH=/usr/share/clang/scan-view-3.8/share:$PYTHONPATH scan-view
+
 update:
 	git submodule update --init --recursive --force --remote
