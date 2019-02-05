@@ -39,6 +39,8 @@ The SDL2 SDA_OS base can now be compiled with emscripten for running in the web 
 
     make sim_emcc
 
+You can try the browser version [here](https://miskribu.cz/SDA_SIM/SDA_OS.html).
+
 ### Writing applications for SDA_OS
 If you want to develop applications for the SDA_OS, you can start with [SDA_OS readme](https://github.com/stanislavbrtna/SDA_OS/blob/master/README.md) and [SVS readme](https://github.com/stanislavbrtna/svs-script/blob/master/SYNTAX.md). You can also look at applications in SDA apps repository.
 
