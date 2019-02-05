@@ -17,14 +17,13 @@ const int SCREEN_HEIGHT = 733;
 
 //==========global svp vars=====
 svpStatusStruct svpSGlobal;
-volatile uint8_t touch_lock;
-volatile uint8_t redraw_lock;
-volatile uint8_t irq_lock;
+volatile sdaLockState touch_lock;
+volatile sdaLockState irq_lock;
 volatile uint32_t counter;
 volatile uint16_t svsCounter;
 volatile uint16_t svsLoadCounter;
 
-volatile uint8_t tickLock;
+volatile sdaLockState tick_lock;
 //==============================
 
 eventType pwr_bttn;
@@ -59,7 +58,8 @@ extern svsVM svm;
 
 void svs_hardErrHandler(){
   strTablePrint(&svm);
-  getchar();
+  printf("hard error occured: terminating!\n");
+  exit(1);
 }
 
 // to emulate touch calibration API
@@ -389,6 +389,7 @@ void sda_sim_loop() {
   static uint8_t oldsec;
   static uint8_t dateSetup;
   static uint8_t LdLck;
+  static uint8_t setupLck;
   static int old_ticks;
   static uint8_t button_flag;
   static uint8_t button_flag_prev;
@@ -525,6 +526,20 @@ void sda_sim_loop() {
       sdaSvmLaunch(preload_fname, 0);
       LdLck = 20;
     }
+  }
+
+  if (setupLck < 10) {
+    setupLck++;
+  } else {
+    setupLck = 11;
+    // sets up battery voltage after the SDA_OS main loop init.
+    svpSGlobal.battPercentage = 75;
+    svpSGlobal.battString[0] = 'N';
+		svpSGlobal.battString[1] = 'a';
+		svpSGlobal.battString[2] = 'N';
+		svpSGlobal.battString[3] = 0;
+		svpSGlobal.battString[4] = 0;
+		svpSGlobal.battString[5] = 0;
   }
 
   SDL_RenderClear(gRenderer);
