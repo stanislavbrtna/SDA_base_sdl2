@@ -114,6 +114,14 @@ void svp_set_backlight(uint8_t val){
   return;
 }
 
+uint8_t sda_is_battery_measured() {
+  return 0;
+}
+
+float   sda_get_battery_voltage() {
+  return 0;
+}
+
 // serial
 uint8_t sda_serial_recieve(uint8_t *str, uint32_t len, uint32_t timeout) {
   uint8_t c;
