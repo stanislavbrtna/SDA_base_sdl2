@@ -456,6 +456,7 @@ void sda_sim_loop() {
   // svsTimer emulation
   if (timer_help < SDL_GetTicks()) {
     timer_help = SDL_GetTicks();
+    svpSGlobal.uptimeMs += SDL_GetTicks() - timer_help;
     if (svsCounter > 10) {
       svsCounter -= 10;
     } else {
