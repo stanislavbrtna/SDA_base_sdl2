@@ -142,6 +142,26 @@ void sda_serial_transmit(uint8_t *str, uint32_t len) {
   printf("Serial transmit over\n");
 }
 
+// USB serial
+uint8_t sda_usb_serial_recieve(uint8_t *str, uint32_t len, uint32_t timeout) {
+  uint8_t c;
+  uint32_t i = 0;
+  printf("USB serial recieve: ");
+
+  if (fgets(str, len , stdin) != 0)
+    return 1;
+  else
+    return 0;
+}
+
+void sda_usb_serial_transmit(uint8_t *str, uint32_t len) {
+  printf("Serial transmit:\n");
+  for(int i = 0; i < len; i++){
+    printf("%u: %x\n", i, str[i]);
+  }
+  printf("Serial transmit over\n");
+}
+
 // lcd shutdown
 void svp_set_lcd_state(lcdStateType state){
   if (state == LCD_OFF) {
