@@ -46,3 +46,6 @@ scan-build:
 
 update:
 	git submodule update --init --recursive --force --remote
+
+autoupdate-apps:
+	find BIN/APPS/ | grep svs | grep -Ev "backup" | awk '{print "sda_app_updater "$$0"\n"}' | bash
