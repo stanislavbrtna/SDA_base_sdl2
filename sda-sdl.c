@@ -122,6 +122,14 @@ float   sda_get_battery_voltage() {
   return 0;
 }
 
+void rtc_write_password(uint8_t *pwd) {
+  // void
+}
+
+uint8_t rtc_read_password(uint8_t *pwd) {
+  return 1;
+}
+
 // serial
 uint8_t sda_serial_recieve(uint8_t *str, uint32_t len, uint32_t timeout) {
   uint8_t c;
