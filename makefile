@@ -11,7 +11,7 @@ LIBS = -lSDL2 -lm
 
 DEFINES = -DPC -DPLATFORM_PC -DPPM_SUPPORT_ENABLED -DSYSCALL_WRAPPERS=20
 
-SRCS = sda-sdl.c sda_fs_pc.c SDA_OS/sda_main.c SDA_OS/GR2/*.c SDA_OS/sda_system/*.c SDA_OS/sda_gui/*.c SDA_OS/sda_util/*.c SDA_OS/SVP_SCREENS/*.c SDA_OS/SVS/*.c SDA_OS/SVS/comm_exec/*.c SDA_OS/SVS_WRAP/*.c SDA_OS/GR2_WRAP/*.c
+SRCS = sda-sdl.c sda_fs_pc.c SDA_OS/sda_main.c SDA_OS/GR2/*.c SDA_OS/sda_system/*.c SDA_OS/sda_gui/*.c SDA_OS/sda_util/*.c SDA_OS/SVP_SCREENS/*.c SDA_OS/SVP_SCREENS/sda_settings/*.c SDA_OS/SVS/*.c SDA_OS/SVS/comm_exec/*.c SDA_OS/SVS_WRAP/*.c SDA_OS/GR2_WRAP/*.c
 
 MAIN = SDA_os
 
