@@ -1,4 +1,6 @@
 CC = gcc
+MKDIR_P ?= mkdir -p
+RM = rm
 
 # define any compile-time flags
 CFLAGS = -std=c99 -O3 -g
@@ -11,12 +13,17 @@ LIBS = -lSDL2 -lm
 
 DEFINES = -DPC -DPLATFORM_PC -DPPM_SUPPORT_ENABLED -DSYSCALL_WRAPPERS=20
 
-SRCS = sda-sdl.c sda_fs_pc.c SDA_OS/sda_main.c SDA_OS/GR2/*.c SDA_OS/sda_system/*.c SDA_OS/sda_gui/*.c SDA_OS/sda_util/*.c SDA_OS/SVP_SCREENS/*.c SDA_OS/SVP_SCREENS/sda_settings/*.c SDA_OS/SVS/*.c SDA_OS/SVS/comm_exec/*.c SDA_OS/SVS_WRAP/*.c SDA_OS/GR2_WRAP/*.c
+LANG = -DLANG_CZ
 
-MAIN = SDA_os
+BUILD_DIR ?= ./build
+
+SRCS := $(shell find "SDA_OS" -name "*.c")
+SRCS += sda-sdl.c sda_fs_pc.c
+OBJS := $(addprefix $(BUILD_DIR),$(addprefix /, $(addsuffix .o,$(basename $(SRCS)))))
 
 all: sim_cz sim_en docs
 
+# generate docs
 docs:
 	@echo Generating wrapper docs
 	$(shell grep -o "#\!.*" SDA_OS/SVS_WRAP/sda_os_wrapper.c    | sed 's .\{2\}  ' > SDA_OS/Docs/sda_main.md)
@@ -27,11 +34,22 @@ docs:
 	$(shell grep -o "#\!.*" SDA_OS/GR2_WRAP/svs_gr2_wrap.c      | sed 's .\{2\}  ' > SDA_OS/Docs/sda_gr2_wrapper.md)
 	$(shell grep -o "#\!.*" SDA_OS/SVS_WRAP/wrap_directS.c      | sed 's .\{2\}  ' > SDA_OS/Docs/sda_directS.md)
 
-sim_cz:
-	$(CC) $(CFLAGS) $(SRCS) $(LIBS) $(DEFINES) -DLANG_CZ -o BIN/SDA_OS_sim_cz
+# fancy quick build
+$(BUILD_DIR)/%.o: %.c
+	$(MKDIR_P) $(dir $@)
+	$(CC) $(CFLAGS) $(DEFINES) $(LANG) $(LIBS) -c $< -o $@
 
+sim_cz: $(OBJS)
+	$(CC) $(OBJS) -o BIN/SDA_OS_sim_cz $(LIBS)
+	#Done
+
+# since quick english build is not needed
 sim_en:
 	$(CC) $(CFLAGS) $(SRCS) $(LIBS) $(DEFINES) -DLANG_EN -o BIN/SDA_OS_sim_eng
+
+.PHONY: clean
+clean:
+	$(RM) $(TARGET) $(OBJS) $(DEPS)
 
 sim_emcc:
 	emcc $(SRCS) $(EMCFLAGS) $(LIBS) $(DEFINES) -DLANG_EN -DWEBTARGET -DTOKEN_CACHE_DISABLED -o binweb/SDA_OS.html $(EMSETTINGS)
