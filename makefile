@@ -3,7 +3,7 @@ MKDIR_P ?= mkdir -p
 RM = rm
 
 # define any compile-time flags
-CFLAGS = -std=c99 -O3 -g
+CFLAGS = -std=c99 -O3 -g -no-pie
 
 EMCFLAGS = -std=c99 -O0 --js-opts 0
 
@@ -40,12 +40,12 @@ $(BUILD_DIR)/%.o: %.c
 	$(CC) $(CFLAGS) $(DEFINES) $(LANG) $(LIBS) -c $< -o $@
 
 sim_cz: $(OBJS)
-	$(CC) $(OBJS) -o BIN/SDA_OS_sim_cz $(LIBS)
+	$(CC) $(OBJS) -o BIN/SDA_OS_sim_cz $(LIBS) -no-pie
 	#Done
 
 # since quick english build is not needed
 sim_en:
-	$(CC) $(CFLAGS) $(SRCS) $(LIBS) $(DEFINES) -DLANG_EN -o BIN/SDA_OS_sim_eng
+	$(CC) $(CFLAGS) $(SRCS) $(LIBS) $(DEFINES) -DLANG_EN -o BIN/SDA_OS_sim_eng 
 
 .PHONY: clean
 clean:
