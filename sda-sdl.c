@@ -20,7 +20,7 @@ svpStatusStruct svpSGlobal;
 volatile sdaLockState touch_lock;
 volatile sdaLockState irq_lock;
 volatile uint32_t counter;
-volatile uint16_t svsCounter;
+volatile uint16_t sdaAppCounter;
 volatile uint16_t svsLoadCounter;
 
 volatile sdaLockState tick_lock;
@@ -59,7 +59,9 @@ extern svsVM svm;
 void svs_hardErrHandler(){
   strTablePrint(&svm);
   printf("hard error occured: terminating!\n");
+  #ifndef WEBTARGET
   exit(1);
+  #endif
 }
 
 // to emulate touch calibration API
@@ -128,6 +130,14 @@ void rtc_write_password(uint8_t *pwd) {
 
 uint8_t rtc_read_password(uint8_t *pwd) {
   return 1;
+}
+
+uint32_t rtc_read_locked() {
+  return 0;
+}
+
+void rtc_write_locked(uint32_t val) {
+  // void
 }
 
 // serial
@@ -453,13 +463,21 @@ void sda_sim_loop() {
       quit = 1;
     }
 
-    if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+    if (e.type == SDL_FINGERDOWN) {
+      touchNow = 1;
+      svpSGlobal.touchX = LCD_rotr_x((uint16_t)e.tfinger.x - SIM_X, (uint16_t)e.tfinger.y - SIM_Y);
+      svpSGlobal.touchY = LCD_rotr_y((uint16_t)e.tfinger.x - SIM_X, (uint16_t)e.tfinger.y - SIM_Y);
+      printf("fingertouch! %u\n", svpSGlobal.touchX);
+    } else if (e.type == SDL_FINGERUP) {
+      touchNow = 0;
+    } else if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
       touchNow = 1;
       svpSGlobal.touchX = LCD_rotr_x((uint16_t)e.button.x - SIM_X, (uint16_t)e.button.y - SIM_Y);
       svpSGlobal.touchY = LCD_rotr_y((uint16_t)e.button.x - SIM_X, (uint16_t)e.button.y - SIM_Y);
     } else {
       touchNow = 0;
     }
+
   }
 
   if ((touchNow == 1) && (touchPrev == 0)) {
@@ -485,10 +503,10 @@ void sda_sim_loop() {
   if (timer_help < SDL_GetTicks()) {
     timer_help = SDL_GetTicks();
     svpSGlobal.uptimeMs = SDL_GetTicks();
-    if (svsCounter > 10) {
-      svsCounter -= 10;
+    if (sdaAppCounter > 10) {
+      sdaAppCounter -= 10;
     } else {
-      svsCounter = 0;
+      sdaAppCounter = 0;
     }
   }
 
@@ -643,6 +661,11 @@ int main(int argc, char *argv[]) {
   if (argc == 2){
     preload = 1;
     preload_fname = argv[1];
+
+    // get rid of the APPS prefix, if present
+    if (preload_fname[0] == 'A' && preload_fname[1] == 'P' && preload_fname[2] == 'P' && preload_fname[3] == 'S') {
+      preload_fname += 5;
+    }
   } else {
     preload = 0;
   }
