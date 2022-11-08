@@ -5,9 +5,11 @@ RM = rm
 # define any compile-time flags
 CFLAGS = -std=c99 -O3 -g -no-pie
 
-EMCFLAGS = -std=c99 -O0 --js-opts 0
+EMCFLAGS = -std=c99 -O3 -g
 
-EMSETTINGS = --preload-file webdata@ -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1
+EMSETTINGS = --preload-file webdata@ -s USE_SDL=2 -s TOTAL_STACK=32mb -s INITIAL_MEMORY=1gb -s MAXIMUM_MEMORY=2gb -s ALLOW_MEMORY_GROWTH=1 -s EMULATE_FUNCTION_POINTER_CASTS=1 -s GLOBAL_BASE=2048
+
+# -s TOTAL_STACK=20mb -s INITIAL_MEMORY=10mb -s ALLOW_MEMORY_GROWTH=1 -s EMULATE_FUNCTION_POINTER_CASTS=0
 
 LIBS = -lSDL2 -lm
 
@@ -52,7 +54,7 @@ clean:
 	$(RM) $(TARGET) $(OBJS) $(DEPS)
 
 sim_emcc:
-	emcc $(SRCS) $(EMCFLAGS) $(LIBS) $(DEFINES) -DLANG_EN -DWEBTARGET -DTOKEN_CACHE_DISABLED -o binweb/SDA_OS.html $(EMSETTINGS)
+	emcc $(SRCS) $(EMCFLAGS) $(LIBS) $(DEFINES) -DLANG_EN -DWEBTARGET -o binweb/SDA_OS.html $(EMSETTINGS)
 
 sim_emcc_cz:
 	emcc $(SRCS) $(EMCFLAGS) $(LIBS) $(DEFINES) -DLANG_EN -DWEBTARGET -DTOKEN_CACHE_DISABLED -o binweb/SDA_OS.html $(EMSETTINGS)
