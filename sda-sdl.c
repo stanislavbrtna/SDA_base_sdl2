@@ -160,6 +160,28 @@ void sda_serial_transmit(uint8_t *str, uint32_t len) {
   printf("Serial transmit over\n");
 }
 
+uint8_t sda_serial_recieve_init() {
+  return 1;
+}
+
+uint8_t sda_serial_str[512];
+
+uint8_t sda_serial_get_rdy() {
+  uint8_t c;
+  uint32_t i = 0;
+  printf("Serial recieve: ");
+
+  if (fgets(sda_serial_str, sizeof(sda_serial_str) , stdin) != 0)
+    return 1;
+  else
+    return 0;
+}
+
+uint8_t uart3_get_str(uint8_t *str) {
+  sda_strcp(sda_serial_str, str, sizeof(sda_serial_str));
+  return 1;
+}
+
 // USB serial
 uint8_t sda_usb_serial_recieve(uint8_t *str, uint32_t len, uint32_t timeout) {
   uint8_t c;
