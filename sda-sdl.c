@@ -51,25 +51,6 @@ uint16_t btn_pos_y[6];
 // used for debug-loading apps from commandline
 extern svsVM svm;
 
-// acoustic alarm
-void svp_beep() {
-  printf("beep\n\a");
-  return;
-}
-
-// acoustic alarm customistaion
-void svp_beep_set_t(uint16_t time){
-  return;
-}
-
-void svp_beep_set_pf(uint16_t val){
-  return;
-}
-
-void svp_beep_set_def(){
-  return;
-}
-
 // rng api
 uint32_t svp_random(){
   return (uint32_t) rand();
@@ -416,6 +397,54 @@ void sda_sim_loop() {
 }
 
 
+// acoustic alarm
+SDL_AudioDeviceID audio_device_id;
+volatile float beep_frequency;
+uint16_t beep_t;
+uint64_t beep_cnt;
+
+void svp_beep() {
+  if (svpSGlobal.mute == 1) 
+    return;
+
+  printf("DBG: beep\n");
+  beep_cnt = svpSGlobal.uptimeMs + beep_t;
+  SDL_PauseAudioDevice(audio_device_id, 0);
+  return;
+}
+
+// acoustic alarm customistaion
+void svp_beep_set_t(uint16_t time) {
+  beep_t = time;
+}
+
+void svp_beep_set_pf(uint16_t val) {
+  beep_frequency = (float) val;
+}
+
+void svp_beep_set_def() {
+  beep_frequency = 440.0;
+  beep_t = 250;
+  return;
+}
+
+// taken from https://github.com/Grieverheart/sdl_tone_generator
+void audio_callback(void* userdata, uint8_t* stream, int len) {
+    uint64_t* samples_played = (uint64_t*)userdata;
+    float* fstream = (float*)(stream);
+    static const float volume = 0.2;
+
+    for(int sid = 0; sid < (len / 8); ++sid)
+    {
+        double time = (*samples_played + sid) / 44100.0;
+        fstream[2 * sid + 0] = volume * sin(beep_frequency * 2.0 * 3.14159265 * time); /* L */
+        fstream[2 * sid + 1] = volume * sin(beep_frequency * 2.0 * 3.14159265 * time); /* R */
+    }
+
+    *samples_played += (len / 8);
+}
+
+
 int main(int argc, char *argv[]) {
   //events
   SDL_Window* window = NULL;
@@ -480,6 +509,42 @@ int main(int argc, char *argv[]) {
   }
   #endif
 
+  // audio stuff
+  // taken from https://github.com/Grieverheart/sdl_tone_generator
+  uint64_t samples_played = 0;
+
+  if(SDL_Init(SDL_INIT_AUDIO) < 0)
+  {
+      fprintf(stderr, "Error initializing SDL. SDL_Error: %s\n", SDL_GetError());
+      return -1;
+  }
+  svp_beep_set_def();
+
+  SDL_AudioSpec audio_spec_want, audio_spec;
+  SDL_memset(&audio_spec_want, 0, sizeof(audio_spec_want));
+
+  audio_spec_want.freq     = 44100;
+  audio_spec_want.format   = AUDIO_F32;
+  audio_spec_want.channels = 2;
+  audio_spec_want.samples  = 512;
+  audio_spec_want.callback = audio_callback;
+  audio_spec_want.userdata = (void*)&samples_played;
+
+  audio_device_id = SDL_OpenAudioDevice(
+      NULL, 0,
+      &audio_spec_want, &audio_spec,
+      SDL_AUDIO_ALLOW_FORMAT_CHANGE
+  );
+
+  if(!audio_device_id)
+  {
+      fprintf(stderr, "Error creating SDL audio device. SDL_Error: %s\n", SDL_GetError());
+      SDL_Quit();
+      return -1;
+  }
+
+  SDL_PauseAudioDevice(audio_device_id, 1);
+
   #ifdef WEBTARGET
   printf("SDA_OS for the internetz!\n");
   emscripten_set_main_loop(sda_sim_loop, 30, 1);
@@ -492,12 +557,17 @@ int main(int argc, char *argv[]) {
     if (SDL_GetTicks() - sdl_time < 33) {
       SDL_Delay(33 - (SDL_GetTicks() - sdl_time));
     }
+
+    if (svpSGlobal.uptimeMs > beep_cnt) {
+      SDL_PauseAudioDevice(audio_device_id, 1);
+    }
   }
   #endif
 
   // Destroy window
   SDL_DestroyRenderer(gRenderer);
   SDL_DestroyWindow(window); // Quit SDL subsystems
+  SDL_CloseAudioDevice(audio_device_id);
   window = NULL;
   gRenderer = NULL;
   SDL_Quit();
