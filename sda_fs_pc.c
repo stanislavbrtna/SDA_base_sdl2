@@ -154,6 +154,7 @@ uint8_t svp_rename(uint8_t *source, uint8_t *dest) {
 
 uint8_t exten[8];
 static DIR *d;
+static uint8_t dir_openned;
 
 
 uint8_t svp_strcmp_ext(uint8_t *s1, uint8_t *s_ext) {
@@ -187,6 +188,11 @@ uint8_t svp_strcmp_ext(uint8_t *s1, uint8_t *s_ext) {
 
 uint8_t svp_extFindNext(uint8_t *outStr, uint16_t len) {
   struct dirent *dir;
+
+  if (!dir_openned) {
+    return 0;
+  }
+  
   while (1) {
     dir = readdir(d);
     //printf("dir: %d\n", dir);
@@ -203,6 +209,7 @@ uint8_t svp_extFindNext(uint8_t *outStr, uint16_t len) {
       }
     } else {
       closedir(d);
+      dir_openned = 0;
       return 0;
     }
   }
@@ -210,7 +217,14 @@ uint8_t svp_extFindNext(uint8_t *outStr, uint16_t len) {
 
 uint8_t svp_extFind(uint8_t *outStr, uint16_t len, uint8_t *extension, uint8_t *directory){
   sda_strcp(extension, exten, 7);
+  
+  if (dir_openned) {
+    closedir(d);
+    dir_openned = 0;
+  }
+
   d = opendir(directory);
+  dir_openned = 1;
   if (d){
     return svp_extFindNext(outStr, len);
   }
@@ -279,6 +293,11 @@ uint8_t svp_getcwd(uint8_t* buf, uint16_t len) {
 
 uint8_t svp_unlink(uint8_t* path) {
   unlink(path);
+  return 0;
+}
+
+uint8_t svp_rmdir(uint8_t* path) {
+  rmdir(path);
   return 0;
 }
 
