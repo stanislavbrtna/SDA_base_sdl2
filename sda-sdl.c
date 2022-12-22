@@ -125,6 +125,13 @@ void ExtDrawPoint(int x, int y, uint16_t color){
   }
 
   #else
+
+  if (x > 320) x=320;
+  if (y > 480) y=480;
+
+  if (x < 0) x=0;
+  if (y < 0) y=0;
+
   sw_fb[x][y] = color;
   draw_flag = 1;
   #endif
