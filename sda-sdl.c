@@ -126,8 +126,8 @@ void ExtDrawPoint(int x, int y, uint16_t color){
 
   #else
 
-  if (x > 320) x=320;
-  if (y > 480) y=480;
+  if (x > 320) x=319;
+  if (y > 480) y=479;
 
   if (x < 0) x=0;
   if (y < 0) y=0;
@@ -262,7 +262,7 @@ void sda_sim_loop() {
     if(e.type == SDL_QUIT) {
       quit = 1;
     }
-
+    /*
     if (e.type == SDL_FINGERDOWN) {
       touchNow = 1;
       svpSGlobal.touchX = LCD_rotr_x((uint16_t)e.tfinger.x - SIM_X, (uint16_t)e.tfinger.y - SIM_Y);
@@ -270,11 +270,21 @@ void sda_sim_loop() {
       printf("fingertouch! %u\n", svpSGlobal.touchX);
     } else if (e.type == SDL_FINGERUP) {
       touchNow = 0;
-    } else if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-      touchNow = 1;
+    } else */
+    //printf("mouse state: %u", SDL_GetMouseState(NULL, NULL));
+
+    if (e.type == SDL_MOUSEBUTTONDOWN) {
       svpSGlobal.touchX = LCD_rotr_x((uint16_t)e.button.x - SIM_X, (uint16_t)e.button.y - SIM_Y);
       svpSGlobal.touchY = LCD_rotr_y((uint16_t)e.button.x - SIM_X, (uint16_t)e.button.y - SIM_Y);
-    } else {
+      touchNow = 1;
+    }
+
+    if (touchNow && e.type == SDL_MOUSEMOTION) {
+      svpSGlobal.touchX = LCD_rotr_x((uint16_t)e.button.x - SIM_X, (uint16_t)e.button.y - SIM_Y);
+      svpSGlobal.touchY = LCD_rotr_y((uint16_t)e.button.x - SIM_X, (uint16_t)e.button.y - SIM_Y);
+    }
+    
+    if (e.type == SDL_MOUSEBUTTONUP) {
       touchNow = 0;
     }
 
