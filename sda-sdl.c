@@ -51,6 +51,13 @@ uint16_t btn_pos_y[6];
 // used for debug-loading apps from commandline
 extern svsVM svm;
 
+// acoustic alarm
+SDL_AudioDeviceID audio_device_id;
+volatile float beep_frequency;
+uint16_t beep_t;
+uint64_t beep_cnt;
+
+
 // rng api
 uint32_t svp_random(){
   return (uint32_t) rand();
@@ -239,11 +246,14 @@ void sda_sim_loop() {
   static int old_ticks;
   static uint8_t button_flag;
   static uint8_t button_flag_prev;
+  static uint32_t sdl_time;
   SDL_Event e;
 
   static uint32_t timer_help;
 
   pwr_bttn = EV_PRESSED;
+
+  sdl_time = SDL_GetTicks();
 
   ti = time(0);
   timeinfo = localtime(&ti);
@@ -258,36 +268,25 @@ void sda_sim_loop() {
     timeinfo->tm_sec
   );
 
+  uint32_t mouse_x = 0;
+  uint32_t mouse_y = 0;
+
+  SDL_GetMouseState(&mouse_x, &mouse_y);
+  svpSGlobal.touchX = LCD_rotr_x((uint16_t)mouse_x - SIM_X, (uint16_t)mouse_y - SIM_Y);
+  svpSGlobal.touchY = LCD_rotr_y((uint16_t)mouse_x - SIM_X, (uint16_t)mouse_y - SIM_Y);
+
   while(SDL_PollEvent(&e) != 0) {
     if(e.type == SDL_QUIT) {
       quit = 1;
     }
-    /*
-    if (e.type == SDL_FINGERDOWN) {
-      touchNow = 1;
-      svpSGlobal.touchX = LCD_rotr_x((uint16_t)e.tfinger.x - SIM_X, (uint16_t)e.tfinger.y - SIM_Y);
-      svpSGlobal.touchY = LCD_rotr_y((uint16_t)e.tfinger.x - SIM_X, (uint16_t)e.tfinger.y - SIM_Y);
-      printf("fingertouch! %u\n", svpSGlobal.touchX);
-    } else if (e.type == SDL_FINGERUP) {
-      touchNow = 0;
-    } else */
-    //printf("mouse state: %u", SDL_GetMouseState(NULL, NULL));
 
     if (e.type == SDL_MOUSEBUTTONDOWN) {
-      svpSGlobal.touchX = LCD_rotr_x((uint16_t)e.button.x - SIM_X, (uint16_t)e.button.y - SIM_Y);
-      svpSGlobal.touchY = LCD_rotr_y((uint16_t)e.button.x - SIM_X, (uint16_t)e.button.y - SIM_Y);
       touchNow = 1;
     }
-
-    if (touchNow && e.type == SDL_MOUSEMOTION) {
-      svpSGlobal.touchX = LCD_rotr_x((uint16_t)e.button.x - SIM_X, (uint16_t)e.button.y - SIM_Y);
-      svpSGlobal.touchY = LCD_rotr_y((uint16_t)e.button.x - SIM_X, (uint16_t)e.button.y - SIM_Y);
-    }
-    
+   
     if (e.type == SDL_MOUSEBUTTONUP) {
       touchNow = 0;
     }
-
   }
 
   if ((touchNow == 1) && (touchPrev == 0)) {
@@ -307,7 +306,42 @@ void sda_sim_loop() {
     svpSGlobal.touchType = EV_NONE;
     svpSGlobal.touchValid = 0;
   }
-  touchPrev=touchNow;
+
+  touchPrev = touchNow;
+
+  // hw buttons handlingbuttons
+  if (svpSGlobal.touchValid) { 
+    for (int i = 0; i < 6; i++) {
+      if((mouse_x > btn_pos_x[i]) && (mouse_x < (btn_pos_x[i] + 32))
+      && (mouse_y > btn_pos_y[i]) && (mouse_y < (btn_pos_y[i] + 32))) {
+        if (svpSGlobal.keyEv[i] == EV_NONE) {
+          svpSGlobal.keyEv[i] = svpSGlobal.touchType;
+        }
+      } else {
+        svpSGlobal.keyEv[i] = EV_NONE;
+      }
+    }
+
+    //power button
+    if((mouse_x > 380) && (mouse_x < 380 + 32)
+      && (mouse_y > 590) && (mouse_y < 600 + 45)) {
+      if (svpSGlobal.touchType == EV_PRESSED) {
+        draw_flag = 1;
+        if(svpSGlobal.lcdState == LCD_OFF) {
+          svp_set_lcd_state(LCD_ON);
+          pwr_bttn = EV_PRESSED;
+        } else {
+          svp_set_lcd_state(LCD_OFF);
+          pwr_bttn = EV_NONE;
+        }
+      }
+    }
+  }
+
+  if(svpSGlobal.lcdState == LCD_OFF) {
+    svpSGlobal.touchValid = 0;
+    svpSGlobal.touchType = EV_NONE;
+  }
 
   // svsTimer emulation
   if (timer_help < SDL_GetTicks()) {
@@ -320,44 +354,7 @@ void sda_sim_loop() {
     }
   }
 
-  // hw buttons handlingbuttons
-  button_flag = 0;
-
-  for (int i = 0; i < 6; i++) {
-    if((e.button.x > btn_pos_x[i]) && (e.button.x < (btn_pos_x[i] + 32))
-    && (e.button.y > btn_pos_y[i]) && (e.button.y < (btn_pos_y[i] + 32))) {
-      button_flag = 1;
-
-      if (svpSGlobal.keyEv[i] == EV_NONE) {
-        svpSGlobal.keyEv[i] = svpSGlobal.touchType;
-      }
-    } else {
-      svpSGlobal.keyEv[i] = EV_NONE;
-    }
-  }
-
-  button_flag_prev = button_flag;
-
-  //power button
-  if((e.button.x > 380) && (e.button.x < 380 + 32)
-     && (e.button.y > 590) && (e.button.y < 600 + 45)) {
-    if (svpSGlobal.touchType == EV_PRESSED) {
-      draw_flag = 1;
-      if(svpSGlobal.lcdState == LCD_OFF) {
-        svp_set_lcd_state(LCD_ON);
-        pwr_bttn = EV_PRESSED;
-      } else {
-        svp_set_lcd_state(LCD_OFF);
-        pwr_bttn = EV_NONE;
-      }
-    }
-  }
-
-  if(svpSGlobal.lcdState == LCD_OFF){
-    svpSGlobal.touchValid = 0;
-    svpSGlobal.touchType = EV_NONE;
-  }
-
+  
   // this is noramlly in an irq, but in simulator we don't care
   svp_irq();
 
@@ -411,14 +408,16 @@ void sda_sim_loop() {
   draw_flag = 0;
   //DrawSwButtons((gr2EventType *)svpSGlobal.keyEv, pwr_bttn);
   SDL_RenderPresent(gRenderer);
+
+  if (SDL_GetTicks() - sdl_time < 22) {
+    SDL_Delay(22 - (SDL_GetTicks() - sdl_time));
+  }
+
+  if (svpSGlobal.uptimeMs > beep_cnt) {
+    SDL_PauseAudioDevice(audio_device_id, 1);
+  }
 }
 
-
-// acoustic alarm
-SDL_AudioDeviceID audio_device_id;
-volatile float beep_frequency;
-uint16_t beep_t;
-uint64_t beep_cnt;
 
 void svp_beep() {
   if (svpSGlobal.mute == 1) 
@@ -566,18 +565,9 @@ int main(int argc, char *argv[]) {
   printf("SDA_OS for the internetz!\n");
   emscripten_set_main_loop(sda_sim_loop, 30, 1);
   #else
-  uint32_t sdl_time;
+  
   while (!quit) { // quit is handled only from SDL_QUIT
-    sdl_time = SDL_GetTicks();
     sda_sim_loop();
-
-    if (SDL_GetTicks() - sdl_time < 33) {
-      SDL_Delay(33 - (SDL_GetTicks() - sdl_time));
-    }
-
-    if (svpSGlobal.uptimeMs > beep_cnt) {
-      SDL_PauseAudioDevice(audio_device_id, 1);
-    }
   }
   #endif
 
