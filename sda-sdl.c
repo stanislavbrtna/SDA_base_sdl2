@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include "SDA_OS/SDA_OS.h"
