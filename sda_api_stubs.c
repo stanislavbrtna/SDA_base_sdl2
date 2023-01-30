@@ -253,3 +253,7 @@ float sda_external_ADC_get() {
   printf("sda_external_ADC_get: returning 8.88");
   return 8.88;
 }
+
+uint8_t sda_card_inserted() {
+  return 1;
+}
