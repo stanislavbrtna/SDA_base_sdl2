@@ -1,8 +1,9 @@
 #include "SDA_OS/SDA_OS.h"
+#include <stdlib.h>
 
 extern svsVM svm;
 
-void svs_hardErrHandler(){
+void svs_hardErrHandler() {
   strTablePrint(&svm);
   printf("hard error occured: terminating!\n");
   #ifndef WEBTARGET
