@@ -384,7 +384,7 @@ void sda_sim_loop() {
   } else {
     if (LdLck == 10) {
       printf("DevLoading: %s\n", preload_fname);
-      sdaSvmLaunch(preload_fname, 0);
+      svmLaunch(preload_fname, 0);
       LdLck = 20;
     }
   }
