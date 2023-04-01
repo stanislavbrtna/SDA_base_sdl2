@@ -48,6 +48,10 @@ uint8_t svp_fopen_rw(svp_file *fp, uint8_t *fname) {
   }
 
   fp->fPointer = fopen(fname, "ab");
+  if (!fp->fPointer) {
+    return 0;
+  }
+
   fclose(fp->fPointer);
 
   fp->fPointer = fopen(fname, "r+b");
