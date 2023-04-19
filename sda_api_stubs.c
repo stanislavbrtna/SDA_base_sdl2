@@ -83,17 +83,17 @@ uint8_t sda_serial_is_enabled() {
   return sdaSerialEnabled;
 }
 
-void sda_dbg_serial_enable() {
+void sda_usb_serial_enable() {
   printf("sda_dbg_serial_enable\n");
   sdaDbgSerialEnabled = 1;
 }
 
-void sda_dbg_serial_disable() {
+void sda_usb_serial_disable() {
   printf("sda_dbg_serial_disable\n");
   sdaDbgSerialEnabled = 0;
 }
 
-uint8_t sda_dbg_serial_is_enabled() {
+uint8_t sda_usb_serial_is_enabled() {
   return sdaDbgSerialEnabled;
 }
 
@@ -195,6 +195,16 @@ uint16_t sda_usb_serial_get_str(uint8_t *str) {
   }
 
   return i;
+}
+
+static uint8_t enable_for_dbg;
+
+void sda_usb_enable_for_dbg(uint8_t val) {
+  enable_for_dbg = val;
+}
+
+uint8_t sda_usb_get_enable_for_dbg() {
+  return enable_for_dbg;
 }
 
 // lcd shutdown
