@@ -32,6 +32,7 @@ eventType pwr_bttn;
 static int quit;
 static uint8_t preload;
 static uint8_t *preload_fname;
+static uint8_t *preload_param;
 
 SDL_Renderer* gRenderer;
 SDL_Texture * gTexture;
@@ -386,6 +387,9 @@ void sda_sim_loop() {
       printf("DevLoading: %s\n", preload_fname);
       svmSetNocacheFlag();
       svmLaunch(preload_fname, 0);
+      if(preload_param != 0) {
+        svmSetArgumentStr(0, preload_param);
+      }
       LdLck = 20;
     }
   }
@@ -514,14 +518,25 @@ int main(int argc, char *argv[]) {
     preload = 0;
   #else
   // loading app from cmdline
-  if (argc == 2){
+  if (argc == 2 || argc == 3) {
     preload = 1;
     preload_fname = argv[1];
+    
+    if (argc == 3) {
+      preload_param = argv[2];
+    } else {
+      preload_param = 0;
+    }
 
     // get rid of the APPS prefix, if present
     if (preload_fname[0] == 'A' && preload_fname[1] == 'P' && preload_fname[2] == 'P' && preload_fname[3] == 'S') {
       preload_fname += 5;
     }
+
+    if (preload_param != 0 && preload_param[0] == 'A' && preload_param[1] == 'P' && preload_param[2] == 'P' && preload_param[3] == 'S') {
+      preload_param += 5;
+    }
+
   } else {
     preload = 0;
   }
