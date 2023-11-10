@@ -13,9 +13,6 @@
 const int SCREEN_WIDTH = 455;
 const int SCREEN_HEIGHT = 733;
 
-#define SIM_X 67
-#define SIM_Y 58
-
 //==========global svp vars=====
 svpStatusStruct svpSGlobal;
 volatile sdaLockState touch_lock;
@@ -35,11 +32,18 @@ static uint8_t *preload_fname;
 static uint8_t *preload_param;
 
 SDL_Renderer* gRenderer;
+SDL_Renderer* gRenderer2;
 SDL_Texture * gTexture;
+
+SDL_Texture * gTexture2;
 
 SDL_Texture * bgTexture;
 
 pwrModeType oldPowerMode;
+
+// sdl windows
+SDL_Window* window = NULL;
+SDL_Window* window2 = NULL;
 
 uint8_t draw_flag;
 
@@ -49,6 +53,10 @@ uint16_t sw_fb[320][480];
 uint16_t btn_pos_x[6];
 uint16_t btn_pos_y[6];
 
+uint16_t info_fb[INFO_WIDTH][INFO_HEIGHT];
+
+uint8_t fb_used;
+uint8_t info_window_enabled;
 
 // used for debug-loading apps from commandline
 extern svsVM svm;
@@ -61,7 +69,7 @@ uint64_t beep_cnt;
 
 
 // rng api
-uint32_t svp_random(){
+uint32_t svp_random() {
   return (uint32_t) rand();
 }
 
@@ -81,8 +89,41 @@ void DrawButton(int x, int y, gr2EventType act){
   }
 
   SDL_RenderFillRect(gRenderer, &rect);
-
 }
+
+
+void DrawInfoButton(int x, int y, gr2EventType act){
+  SDL_Rect rect;
+
+  rect.x = x;
+  rect.y = y;
+  rect.w = 32;
+  rect.h = 32;
+
+  if (act != EV_NONE) {
+    SDL_SetRenderDrawColor(gRenderer, 255, 0, 0, 0xFF);
+  } else {
+    SDL_SetRenderDrawColor(gRenderer, 60, 60, 155, 0xFF);
+  }
+  SDL_RenderFillRect(gRenderer, &rect);
+
+  rect.x = x + 14;
+  rect.y = y + 6;
+  rect.w = 4;
+  rect.h = 4;
+
+  SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 0xFF);
+  SDL_RenderFillRect(gRenderer, &rect);
+
+  rect.x = x + 14;
+  rect.y = y + 15;
+  rect.w = 4;
+  rect.h = 12;
+
+  SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 0xFF);
+  SDL_RenderFillRect(gRenderer, &rect);
+}
+
 
 // simulated powerbutton
 void DrawButton2(int x, int y, gr2EventType act){
@@ -117,48 +158,57 @@ void DrawSwButtons(gr2EventType *btn, gr2EventType btn_off){
 
 // draws point in swfb
 void ExtDrawPoint(int x, int y, uint16_t color){
-  #ifdef SIM_SHOW_REDRAW
-  static uint8_t red_flag;
+  if(fb_used == MAIN_FB) {
+    #ifdef SIM_SHOW_REDRAW
+    static uint8_t red_flag;
 
-  red_flag++;
+    red_flag++;
 
-  if (red_flag > 3){
-    red_flag = 0;
-  }
-  if (red_flag == 1) {
-    sw_fb[x][y] = 0xFE00;
-    draw_flag = 1;
-  } else {
+    if (red_flag > 3){
+      red_flag = 0;
+    }
+    if (red_flag == 1) {
+      sw_fb[x][y] = 0xFE00;
+      draw_flag = 1;
+    } else {
+      sw_fb[x][y] = color;
+      draw_flag = 1;
+    }
+
+    #else
+    if (x > 320) x = 319;
+    if (y > 480) y = 479;
+
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+
     sw_fb[x][y] = color;
     draw_flag = 1;
+    #endif
+  } else {
+    if (x > INFO_WIDTH) x = INFO_WIDTH;
+    if (y > INFO_HEIGHT) y = INFO_HEIGHT;
+
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+
+    info_fb[x][y] = color;
   }
-
-  #else
-
-  if (x > 320) x=319;
-  if (y > 480) y=479;
-
-  if (x < 0) x=0;
-  if (y < 0) y=0;
-
-  sw_fb[x][y] = color;
-  draw_flag = 1;
-  #endif
 }
 
 // clears software framebuffer
-void fb_clear(){
+void fb_clear(uint16_t *r, uint16_t w, uint16_t h) {
   int a,b;
-  for (a = 0; a < 320; a++) {
-    for (b = 0; b < 480; b++) {
-      sw_fb[a][b] = 0xFFFF;
+  for (a = 0; a < w; a++) {
+    for (b = 0; b < h; b++) {
+      r[a*b] = 0xFFFF;
     }
   }
 }
 
 // renders swfb
 
-void fb_copy_to_renderer() {
+void fb_copy_to_renderer(uint16_t *ar, uint16_t w, uint16_t h, SDL_Renderer * renderer, SDL_Texture* texture, int x, int y) {
   int a,i;
   SDL_Rect dstrect;
   uint8_t r, g, b;
@@ -166,32 +216,32 @@ void fb_copy_to_renderer() {
   int pitch = 0;
   int format;
 
-  SDL_LockTexture(gTexture, 0, (void**)&pixels, &pitch);
+  SDL_LockTexture(texture, 0, (void**)&pixels, &pitch);
 
-  for (a = 0; a < 320; a++) {
-    for (i = 0; i < 480; i++) {
-      r = (uint8_t)(((float)((sw_fb[a][i]>>11)&0x1F)/32)*256);
-      g = (uint8_t)(((float)(((sw_fb[a][i]&0x07E0)>>5)&0x3F)/64)*256);
-      b = (uint8_t)(((float)(sw_fb[a][i]&0x1F)/32)*256);
+  for (a = 0; a < w; a++) {
+    for (i = 0; i < h; i++) {
+      r = (uint8_t)(((float)((ar[i+(a*h)]>>11)&0x1F)/32)*256);
+      g = (uint8_t)(((float)(((ar[i+(a*h)]&0x07E0)>>5)&0x3F)/64)*256);
+      b = (uint8_t)(((float)(ar[i+(a*h)]&0x1F)/32)*256);
 
-      if (svpSGlobal.lcdState == LCD_OFF) {
+      if (svpSGlobal.lcdState == LCD_OFF && ar == sw_fb) {
         r = 18;
         g = 18;
         b = 18;
       }
 
-      pixels[i * 320 + a] = r << 24 | g << 16 | b << 8 | SDL_ALPHA_OPAQUE;
+      pixels[i * w + a] = r << 24 | g << 16 | b << 8 | SDL_ALPHA_OPAQUE;
     }
   }
 
-  SDL_UnlockTexture(gTexture);
+  SDL_UnlockTexture(texture);
 
-  dstrect.x = SIM_X;
-  dstrect.y = SIM_Y;
-  dstrect.w = 320;
-  dstrect.h = 480;
+  dstrect.x = x;
+  dstrect.y = y;
+  dstrect.w = (int)w;
+  dstrect.h = (int)h;
 
-  SDL_RenderCopy(gRenderer, gTexture, NULL, &dstrect);
+  SDL_RenderCopy(renderer, texture, NULL, &dstrect);
 }
 
 void fb_render_bg() {
@@ -241,6 +291,7 @@ void sda_sim_loop() {
   //touch misc
   static uint8_t touchPrev;
   static uint8_t touchNow;
+  static uint8_t touchInfo;
   static uint8_t oldsec;
   static uint8_t dateSetup;
   static uint8_t LdLck;
@@ -278,17 +329,42 @@ void sda_sim_loop() {
   svpSGlobal.touchY = LCD_rotr_y((uint16_t)mouse_x - SIM_X, (uint16_t)mouse_y - SIM_Y);
 
   while(SDL_PollEvent(&e) != 0) {
+    // main window
+    if ((window != NULL) && (SDL_GetWindowFromID(e.window.windowID) == window)) {
+      if (e.type == SDL_MOUSEBUTTONDOWN) {
+        touchNow = 1;
+      }
+    
+      if (e.type == SDL_MOUSEBUTTONUP) {
+        touchNow = 0;
+      }
+      
+      if((e.type == SDL_WINDOWEVENT) && (e.window.event == SDL_WINDOWEVENT_CLOSE)) {
+        quit = 1;
+      }
+    }
+
+    // info window
+    if ((window2 != NULL) && (SDL_GetWindowFromID(e.window.windowID) == window2)) {
+      if((e.type == SDL_WINDOWEVENT) && (e.window.event == SDL_WINDOWEVENT_CLOSE)) {
+        SDL_DestroyWindow(window2);
+        window2 = NULL;
+        info_window_enabled = 0;
+        info_window_reset();
+      }
+      if (e.type == SDL_MOUSEBUTTONDOWN) {
+        touchInfo = 1;
+      }
+    
+      if (e.type == SDL_MOUSEBUTTONUP) {
+        touchInfo = 0;
+      }
+    }
+
     if(e.type == SDL_QUIT) {
       quit = 1;
     }
 
-    if (e.type == SDL_MOUSEBUTTONDOWN) {
-      touchNow = 1;
-    }
-   
-    if (e.type == SDL_MOUSEBUTTONUP) {
-      touchNow = 0;
-    }
   }
 
   if ((touchNow == 1) && (touchPrev == 0)) {
@@ -335,6 +411,21 @@ void sda_sim_loop() {
         } else {
           svp_set_lcd_state(LCD_OFF);
           pwr_bttn = EV_NONE;
+        }
+      }
+    }
+
+    // info button
+    if((mouse_x > 400) && (mouse_x < 450)
+      && (mouse_y > 650) && (mouse_y < 733)) {
+      if (svpSGlobal.touchType == EV_PRESSED) {
+        if(info_window_enabled == 0) {
+          SDL_CreateWindowAndRenderer(INFO_WIDTH, INFO_HEIGHT, 0, &window2, &gRenderer2);
+          fb_clear((uint16_t * )info_fb, INFO_WIDTH, INFO_HEIGHT);
+          SDL_SetRenderDrawColor(gRenderer2, 0, 0, 0, 0xFF);
+          SDL_RenderClear(gRenderer2);
+          gTexture2 = SDL_CreateTexture(gRenderer2, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, INFO_WIDTH, INFO_HEIGHT);
+          info_window_enabled = 1;
         }
       }
     }
@@ -410,11 +501,21 @@ void sda_sim_loop() {
 
   SDL_RenderClear(gRenderer);
   fb_render_bg();
-  fb_copy_to_renderer();
+  fb_copy_to_renderer((uint16_t *)sw_fb, 320, 480, gRenderer, gTexture, SIM_X, SIM_Y);
   draw_flag = 0;
   //DrawSwButtons((gr2EventType *)svpSGlobal.keyEv, pwr_bttn);
+  if(info_window_enabled == 0) {
+    DrawInfoButton(420, 700, 0);
+  }
   SDL_RenderPresent(gRenderer);
 
+  if(info_window_enabled) {
+    info_window_loop(touchInfo, mouse_x, mouse_y);
+    SDL_RenderClear(gRenderer2);
+    fb_copy_to_renderer((uint16_t *)info_fb, INFO_WIDTH, INFO_HEIGHT, gRenderer2, gTexture2, 0, 0);
+    SDL_RenderPresent(gRenderer2);
+  }
+  
   if (SDL_GetTicks() - sdl_time < 22) {
     SDL_Delay(22 - (SDL_GetTicks() - sdl_time));
   }
@@ -469,7 +570,6 @@ void audio_callback(void* userdata, uint8_t* stream, int len) {
 
 int main(int argc, char *argv[]) {
   //events
-  SDL_Window* window = NULL;
   eventType touchEvPrev = RELEASED;
   //time
   quit = 0;
@@ -496,7 +596,7 @@ int main(int argc, char *argv[]) {
   SDL_Init( SDL_INIT_VIDEO );
   SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &window, &gRenderer) ;
 
-  fb_clear();
+  fb_clear((uint16_t * )sw_fb, 320, 480);
 
   SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 0xFF);
   SDL_RenderClear(gRenderer);
