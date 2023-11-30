@@ -50,6 +50,9 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   static uint16_t collect_button;
   static uint16_t lock_txt;
 
+  static uint16_t file_conf_txt;
+  static uint16_t file_csv_txt;
+
   static uint16_t elements_bar;
   
   if (info_window_init == 0) {
@@ -91,6 +94,13 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     line++;
 
     reset_button = gr2_add_button(1, 5, 5, 1, "Reload app", scr, &c_info);
+
+    line +=2;
+
+    gr2_add_text(1, line, 6, 1, "Openned files:", scr, &c_info); line++;
+    file_conf_txt = gr2_add_text(1, line, 6, 1, "none", scr, &c_info); line++;
+    file_csv_txt = gr2_add_text(1, line, 6, 1, "none", scr, &c_info); line++;
+
     info_window_init = 1;
   }
 
@@ -137,6 +147,18 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
       gr2_set_str(lock_txt, "Crypto unlocked", &c_info);
     } else {
       gr2_set_str(lock_txt, "Crypto locked", &c_info);
+    }
+
+    if (sda_get_conf_fname()) {
+      gr2_set_str(file_conf_txt, sda_get_conf_fname(), &c_info);
+    } else {
+      gr2_set_str(file_conf_txt, "none", &c_info);
+    }
+
+    if (sda_get_csv_fname()) {
+      gr2_set_str(file_csv_txt, sda_get_csv_fname(), &c_info);
+    } else {
+      gr2_set_str(file_csv_txt, "none", &c_info);
     }
   }
 
