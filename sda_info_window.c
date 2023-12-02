@@ -53,6 +53,9 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   static uint16_t file_conf_txt;
   static uint16_t file_csv_txt;
 
+  static uint16_t file_cwd_txt;
+  static uint8_t cwd_buff[156];
+
   static uint16_t elements_bar;
   
   if (info_window_init == 0) {
@@ -97,9 +100,13 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
 
     line +=2;
 
-    gr2_add_text(1, line, 6, 1, "Openned files:", scr, &c_info); line++;
-    file_conf_txt = gr2_add_text(1, line, 6, 1, "none", scr, &c_info); line++;
-    file_csv_txt = gr2_add_text(1, line, 6, 1, "none", scr, &c_info); line++;
+    gr2_add_text(1, line, 6, 1, "Openned files:", scr, &c_info);
+    gr2_add_text(8, line, 6, 1, "Working directory:", scr, &c_info);
+    line++;
+    file_conf_txt = gr2_add_text(1, line, 7, 1, "none", scr, &c_info);
+    file_cwd_txt = gr2_add_text(8, line, 6, 1, "n/a", scr, &c_info);
+    line++;
+    file_csv_txt = gr2_add_text(1, line, 7, 1, "none", scr, &c_info); line++;
 
     info_window_init = 1;
   }
@@ -160,6 +167,18 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     } else {
       gr2_set_str(file_csv_txt, "none", &c_info);
     }
+
+    svp_getcwd(cwd_buff, sizeof(cwd_buff));
+    // lets live dangerously...
+    int i = 0;
+    while(cwd_buff[i] != 0) {
+      if(cwd_buff[i] == 'B' && cwd_buff[i + 1] == 'I' && cwd_buff[i + 2] == 'N') {
+        i += 4;
+        break;
+      }
+      i++;
+    }
+    gr2_set_str(file_cwd_txt, (uint8_t*)((uint64_t)cwd_buff + (uint64_t) i), &c_info);
   }
 
   if(gr2_get_event(reset_button, &c_info) == EV_RELEASED) {
