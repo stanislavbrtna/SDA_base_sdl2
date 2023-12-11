@@ -42,7 +42,21 @@ docs:
 	$(shell grep -o "#\!.*" SDA_OS/GR2_WRAP/svs_gr2_wrap.c      | sed 's .\{2\}  ' > SDA_OS/Docs/sda_gr2_wrapper.md)
 	$(shell grep -o "#\!.*" SDA_OS/GR2_WRAP/sda_gr2_inits.c     | sed 's .\{2\}  ' >> SDA_OS/Docs/sda_gr2_wrapper.md)
 	$(shell grep -o "#\!.*" SDA_OS/GR2_WRAP/sda_gr2_get_set.c   | sed 's .\{2\}  ' >> SDA_OS/Docs/sda_gr2_wrapper.md)
+	$(shell grep -o "#\!.*" SDA_OS/GR2_WRAP/sda_gr2_txt.c       | sed 's .\{2\}  ' >> SDA_OS/Docs/sda_gr2_wrapper.md)
 	$(shell grep -o "#\!.*" SDA_OS/SVS_WRAP/wrap_directS.c      | sed 's .\{2\}  ' > SDA_OS/Docs/sda_directS.md)
+    # generate handbook
+	$(shell cat SDA_OS/Docs/sda_main.md > SDA_OS/Docs/Handbook.md)
+	$(shell cat SDA_OS/Docs/sda_os_gui.md >> SDA_OS/Docs/Handbook.md)
+	$(shell cat SDA_OS/Docs/sda_os_sound.md >> SDA_OS/Docs/Handbook.md)
+	$(shell cat SDA_OS/Docs/sda_os_widgets.md >> SDA_OS/Docs/Handbook.md)
+	$(shell cat SDA_OS/Docs/sda_os_crypto.md >> SDA_OS/Docs/Handbook.md)
+	$(shell cat SDA_OS/Docs/sda_hw.md >> SDA_OS/Docs/Handbook.md)
+	$(shell cat SDA_OS/Docs/sda_files.md >> SDA_OS/Docs/Handbook.md)
+	$(shell cat SDA_OS/Docs/sda_overlays.md >> SDA_OS/Docs/Handbook.md)
+	$(shell cat SDA_OS/Docs/sda_time.md >> SDA_OS/Docs/Handbook.md)
+	$(shell cat SDA_OS/Docs/sda_gr2_wrapper.md >> SDA_OS/Docs/Handbook.md)
+	$(shell cat SDA_OS/Docs/sda_directS.md >> SDA_OS/Docs/Handbook.md)
+	$(shell cd SDA_OS/Docs/ && pandoc --from=gfm --to=odt -s -V papersize:a5 -V geometry:margin=2cm -o handbook/hb.odt Handbook.md)
 
 # fancy quick build
 $(BUILD_DIR)/%.o: %.c
