@@ -37,6 +37,8 @@ void info_window_reset() {
   printf("    tokenMax:        %u\n", s->tokenMax);
 */
 
+extern uint8_t sda_sim_serial_trigger;
+
 uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   static uint16_t scr;
   static uint8_t touchPrev;
@@ -54,9 +56,11 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   static uint16_t file_csv_txt;
 
   static uint16_t file_cwd_txt;
-  static uint8_t cwd_buff[156];
+  static uint8_t  cwd_buff[156];
 
   static uint16_t elements_bar;
+
+  static uint16_t trigger_btn;
   
   if (info_window_init == 0) {
     gr2_init_context(&c_info, info_elements, 40, info_screens, 10);
@@ -96,7 +100,8 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     line++;
     line++;
 
-    reset_button = gr2_add_button(1, 5, 5, 1, "Reload app", scr, &c_info);
+    reset_button = gr2_add_button(1, line, 5, 1, "Reload app", scr, &c_info);
+    trigger_btn  = gr2_add_button(8, line, 5, 1, "Uart trigger", scr, &c_info);
 
     line +=2;
 
@@ -195,6 +200,21 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     gr2_set_value(string_bar, svm.stringFieldLen, &c_info);
   }
   gr2_clear_event(collect_button, &c_info);
+
+  if(gr2_get_event(trigger_btn, &c_info) == EV_RELEASED) {
+    if (sda_sim_serial_trigger == 0) {
+      sda_sim_serial_trigger = 1;
+      gr2_set_select(trigger_btn, 1, &c_info);
+    } else if (sda_sim_serial_trigger == 1) {
+      sda_sim_serial_trigger = 2;
+    } else {
+      gr2_set_select(trigger_btn, 0, &c_info);
+      sda_sim_serial_trigger = 0;
+    }
+    
+  }
+  gr2_clear_event(trigger_btn, &c_info);
+
 
   LCD_getDrawArea(&a);
   LCD_setDrawArea(0, 0, INFO_WIDTH, INFO_HEIGHT);

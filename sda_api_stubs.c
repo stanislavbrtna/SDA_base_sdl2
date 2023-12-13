@@ -125,6 +125,7 @@ void sda_serial_transmit(uint8_t *str, uint32_t len) {
 }
 
 uint8_t sda_serial_str[512];
+uint8_t sda_sim_serial_trigger;
 
 uint8_t sda_serial_recieve_init() {
   for (int i = 0; i < sizeof(sda_serial_str); i++)
@@ -136,17 +137,19 @@ uint8_t sda_serial_recieve_init() {
 uint8_t sda_serial_get_rdy() {
   uint8_t c;
   uint32_t i = 0;
-  printf("Serial recieve: ");
-
-  if (fgets(sda_serial_str, sizeof(sda_serial_str) , stdin) != 0)
-    return 2;
+  
+  if (sda_sim_serial_trigger != 0)
+    return sda_sim_serial_trigger;
   else
     return 0;
 }
 
 uint16_t sda_serial_get_str(uint8_t *str) {
+  printf("Serial recieve: ");
+  fgets(sda_serial_str, sizeof(sda_serial_str) , stdin);
   sda_strcp(sda_serial_str, str, sizeof(sda_serial_str));
 
+  sda_sim_serial_trigger = 0;
   int i = 0;
   while(sda_serial_str[i] != 0) {
     i++;
