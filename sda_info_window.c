@@ -108,8 +108,8 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     gr2_add_text(1, line, 6, 1, "Openned files:", scr, &c_info);
     gr2_add_text(8, line, 6, 1, "Working directory:", scr, &c_info);
     line++;
-    file_conf_txt = gr2_add_text(1, line, 7, 1, "none", scr, &c_info);
-    file_cwd_txt = gr2_add_text(8, line, 6, 1, "n/a", scr, &c_info);
+    file_conf_txt = gr2_add_text(1, line, 10, 1, "none", scr, &c_info);
+    file_cwd_txt  = gr2_add_text(8, line, 10, 1, "n/a", scr, &c_info);
     line++;
     file_csv_txt = gr2_add_text(1, line, 7, 1, "none", scr, &c_info); line++;
 
