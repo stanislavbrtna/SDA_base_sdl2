@@ -39,6 +39,8 @@ void info_window_reset() {
 
 extern uint8_t sda_sim_serial_trigger;
 
+void sda_sim_set_pin_dbg(uint8_t val);
+
 uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   static uint16_t scr;
   static uint8_t touchPrev;
@@ -61,6 +63,7 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   static uint16_t elements_bar;
 
   static uint16_t trigger_btn;
+  static uint16_t pindbg_btn;
   
   if (info_window_init == 0) {
     gr2_init_context(&c_info, info_elements, 40, info_screens, 10);
@@ -101,7 +104,8 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     line++;
 
     reset_button = gr2_add_button(1, line, 5, 1, "Reload app", scr, &c_info);
-    trigger_btn  = gr2_add_button(8, line, 5, 1, "Uart trigger", scr, &c_info);
+    trigger_btn  = gr2_add_button(8, line, 4, 1, "Uart trigger", scr, &c_info);
+    pindbg_btn   = gr2_add_checkbox(13, line, 5, 1, "I/O Debug", scr, &c_info);
 
     line +=2;
 
@@ -215,6 +219,10 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   }
   gr2_clear_event(trigger_btn, &c_info);
 
+  if(gr2_get_event(pindbg_btn, &c_info) == EV_RELEASED) {
+    sda_sim_set_pin_dbg((uint8_t) gr2_get_value(pindbg_btn, &c_info));
+  }
+  gr2_clear_event(pindbg_btn, &c_info);
 
   LCD_getDrawArea(&a);
   LCD_setDrawArea(0, 0, INFO_WIDTH, INFO_HEIGHT);
