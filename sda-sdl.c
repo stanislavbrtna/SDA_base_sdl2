@@ -376,10 +376,12 @@ void sda_sim_loop() {
     svpSGlobal.touchType = EV_RELEASED;
     svpSGlobal.touchValid = 1;
   }
+
   if ((touchNow == 1) && (touchPrev == 1)) {
     svpSGlobal.touchType = EV_HOLD;
     svpSGlobal.touchValid = 1;
   }
+  
   if ((touchNow == 0) && (touchPrev == 0)) {
     svpSGlobal.touchType = EV_NONE;
     svpSGlobal.touchValid = 0;
@@ -388,14 +390,15 @@ void sda_sim_loop() {
   touchPrev = touchNow;
 
   // hw buttons handlingbuttons
-  if (svpSGlobal.touchValid) { 
+  if (svpSGlobal.touchValid) {
     for (int i = 0; i < 6; i++) {
+      //printf("m_x: %u, m_y: %u\np_x: %u, p_y: %u\n", mouse_x, mouse_y, btn_pos_x[i], btn_pos_y[i]);
       if((mouse_x > btn_pos_x[i]) && (mouse_x < (btn_pos_x[i] + 32))
-      && (mouse_y > btn_pos_y[i]) && (mouse_y < (btn_pos_y[i] + 32))) {
+         && (mouse_y > btn_pos_y[i]) && (mouse_y < (btn_pos_y[i] + 32))) {
         if (svpSGlobal.keyEv[i] == EV_NONE) {
           svpSGlobal.keyEv[i] = svpSGlobal.touchType;
         }
-      } else {
+        } else {
         svpSGlobal.keyEv[i] = EV_NONE;
       }
     }

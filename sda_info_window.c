@@ -225,8 +225,8 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   gr2_clear_event(pindbg_btn, &c_info);
 
   LCD_getDrawArea(&a);
-  LCD_setDrawArea(0, 0, INFO_WIDTH, INFO_HEIGHT);
-  gr2_draw_screen(0, 0, INFO_WIDTH, INFO_HEIGHT, scr, 0, &c_info);
+  LCD_setDrawArea(0, 0, INFO_WIDTH - 1, INFO_HEIGHT - 1);
+  gr2_draw_screen(0, 0, INFO_WIDTH - 1, INFO_HEIGHT - 1, scr, 0, &c_info);
 
   gr2_draw_end(&c_info);
   LCD_setDrawAreaS(&a);
