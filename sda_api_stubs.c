@@ -96,6 +96,10 @@ void sda_serial_init_bd(uint32_t val) {
   printf("%s: %u\n", __FUNCTION__, val);
 }
 
+uint8_t sda_serial_get_spec() {
+  return 0;
+}
+
 void sda_usb_serial_disable() {
   printf("sda_dbg_serial_disable\n");
   sdaDbgSerialEnabled = 0;
