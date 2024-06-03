@@ -490,7 +490,7 @@ void sda_sim_loop() {
 
   if (setupLck < 10) {
     setupLck++;
-  } else {
+  } else if (setupLck == 10){
     setupLck = 11;
     // sets up battery voltage after the SDA_OS main loop init.
     svpSGlobal.battPercentage = 75;

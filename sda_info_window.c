@@ -64,6 +64,11 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
 
   static uint16_t trigger_btn;
   static uint16_t pindbg_btn;
+
+  static uint16_t procinfo_btn;
+  static uint16_t svminfo_btn;
+
+  static uint16_t batt_bar;
   
   if (info_window_init == 0) {
     gr2_init_context(&c_info, info_elements, 40, info_screens, 10);
@@ -107,7 +112,13 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     trigger_btn  = gr2_add_button(8, line, 4, 1, "Uart trigger", scr, &c_info);
     pindbg_btn   = gr2_add_checkbox(13, line, 5, 1, "I/O Debug", scr, &c_info);
 
-    line +=2;
+    line +=1;
+
+    procinfo_btn = gr2_add_button(13, line, 4, 1, "Proc Info", scr, &c_info);
+    batt_bar = gr2_add_slider_h(1, line, 5, 1, 100, svpSGlobal.battPercentage, scr, &c_info);
+    svminfo_btn = gr2_add_button(8, line, 4, 1, "Svm Info", scr, &c_info);
+
+    line +=1;
 
     gr2_add_text(1, line, 6, 1, "Openned files:", scr, &c_info);
     gr2_add_text(8, line, 6, 1, "Working directory:", scr, &c_info);
@@ -223,6 +234,21 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     sda_sim_set_pin_dbg((uint8_t) gr2_get_value(pindbg_btn, &c_info));
   }
   gr2_clear_event(pindbg_btn, &c_info);
+
+  if(gr2_get_event(procinfo_btn, &c_info) == EV_RELEASED) {
+    svmProcInfo();
+  }
+  gr2_clear_event(procinfo_btn, &c_info);
+
+  if(gr2_get_event(svminfo_btn, &c_info) == EV_RELEASED) {
+    //svsFunctionTablePrint(&svm);
+  }
+  gr2_clear_event(svminfo_btn, &c_info);
+
+  if(gr2_get_event(batt_bar, &c_info)) {
+    svpSGlobal.battPercentage = gr2_get_value(batt_bar, &c_info) - gr2_get_value(batt_bar, &c_info)%5;
+  }
+  gr2_clear_event(batt_bar, &c_info);
 
   LCD_getDrawArea(&a);
   LCD_setDrawArea(0, 0, INFO_WIDTH - 1, INFO_HEIGHT - 1);
