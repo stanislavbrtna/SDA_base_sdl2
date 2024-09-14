@@ -64,7 +64,7 @@ docs:
 # fancy quick build
 $(BUILD_DIR)/%.o: %.c
 	$(MKDIR_P) $(dir $@)
-	$(CC) $(CFLAGS) $(DEFINES) $(LANG) $(LIBS) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEFINES) $(LANG) $(LIBS) -Wunused-variable -c $< -o $@
 
 sim_cz: $(OBJS)
 	$(CC) $(OBJS) -o BIN/SDA_OS_sim_cz $(LIBS) -no-pie
