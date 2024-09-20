@@ -45,7 +45,7 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   static uint16_t scr;
   static uint8_t touchPrev;
   gr2EventType touchType = EV_NONE;
-  uint8_t touchValid;
+  uint8_t touchValid = 0;
 
   // gr2 screen elements
   static uint16_t string_bar;
