@@ -124,6 +124,10 @@ uint8_t svp_fclose(svp_file *fp) {
 }
 
 uint8_t svp_fseek(svp_file *fp, uint32_t offset) {
+  //if(offset > svp_get_size(fp)) {
+  //  printf("Warn: file is enlarged with seek\n");
+  //}
+
   fseek(fp->fPointer, offset, SEEK_SET);
   return 0;
 }

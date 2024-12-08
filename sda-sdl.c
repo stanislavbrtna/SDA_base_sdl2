@@ -365,6 +365,12 @@ void sda_sim_loop() {
       quit = 1;
     }
 
+    if(e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_F5) {
+      uint8_t namebuff[258];
+      sda_strcp(svmGetName(), namebuff, sizeof(namebuff) - 1);
+      svmCloseRunning();
+      svmLaunch(namebuff, 0);
+    }
   }
 
   if ((touchNow == 1) && (touchPrev == 0)) {
