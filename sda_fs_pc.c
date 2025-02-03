@@ -142,6 +142,36 @@ uint32_t svp_get_size(svp_file *fp) {
   return siz;
 }
 
+int32_t svp_get_mtime(uint8_t *fname) {
+  struct stat s;
+  struct tm * timeinfo;
+
+  if(stat(fname, &s)){
+    return 0;
+  }
+
+  timeinfo = localtime(&s.st_mtime);
+
+  return sdaTimeGetTimestamp(
+    timeinfo->tm_year + 1900,
+    timeinfo->tm_mon + 1,
+    timeinfo->tm_mday,
+    timeinfo->tm_hour,
+    timeinfo->tm_min,
+    timeinfo->tm_sec
+  );
+}
+
+uint32_t svp_get_size_n(uint8_t *fname) {
+  struct stat s;
+
+  if(stat(fname, &s)){
+    return 0;
+  }
+
+  return s.st_size;
+}
+
 uint32_t svp_ftell(svp_file *fp) {
   return ftell(fp->fPointer);
 }

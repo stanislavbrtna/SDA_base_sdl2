@@ -31,6 +31,7 @@ File description:
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <time.h>
 int ftruncate(int fd, off_t length);
 int fileno(const FILE *stream);
 
