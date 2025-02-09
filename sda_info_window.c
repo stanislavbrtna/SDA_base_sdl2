@@ -56,6 +56,7 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
 
   static uint16_t file_conf_txt;
   static uint16_t file_csv_txt;
+  static uint16_t file_db_txt;
 
   static uint16_t file_cwd_txt;
   static uint8_t  cwd_buff[156];
@@ -126,7 +127,9 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     file_conf_txt = gr2_add_text(1, line, 10, 1, "none", scr, &c_info);
     file_cwd_txt  = gr2_add_text(8, line, 10, 1, "n/a", scr, &c_info);
     line++;
-    file_csv_txt = gr2_add_text(1, line, 7, 1, "none", scr, &c_info); line++;
+    file_csv_txt = gr2_add_text(1, line, 7, 1, "none", scr, &c_info); 
+    line++;
+    file_db_txt  = gr2_add_text(1, line, 10, 1, "none", scr, &c_info);
 
     info_window_init = 1;
   }
@@ -186,6 +189,12 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
       gr2_set_str(file_csv_txt, sda_get_csv_fname(), &c_info);
     } else {
       gr2_set_str(file_csv_txt, "none", &c_info);
+    }
+
+    if (sda_get_db_fname()) {
+      gr2_set_str(file_db_txt, sda_get_db_fname(), &c_info);
+    } else {
+      gr2_set_str(file_db_txt, "none", &c_info);
     }
 
     svp_getcwd(cwd_buff, sizeof(cwd_buff));
