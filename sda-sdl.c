@@ -31,9 +31,9 @@ static uint8_t preload;
 static uint8_t *preload_fname;
 static uint8_t *preload_param;
 
-SDL_Renderer* gRenderer;
-SDL_Renderer* gRenderer2;
-SDL_Texture * gTexture;
+SDL_Renderer *gRenderer;
+SDL_Renderer *gRenderer2;
+SDL_Texture  *gTexture;
 
 SDL_Texture * gTexture2;
 
@@ -230,7 +230,7 @@ void fb_copy_to_renderer(uint16_t *ar, uint16_t w, uint16_t h, SDL_Renderer * re
         b = 18;
       }
 
-      pixels[i * w + a] = r << 24 | g << 16 | b << 8 | SDL_ALPHA_OPAQUE;
+      pixels[i * w + a] = r << 16 | g << 8 | b;
     }
   }
 
@@ -248,13 +248,17 @@ void fb_render_bg() {
   int a,i;
   SDL_Rect dstrect;
   uint8_t r, g, b;
-  Uint32* pixels = 0;
+  Uint32 *pixels;
   int pitch = 0;
   int format;
   char *data;
   uint8_t pixel[3];
 
-  SDL_LockTexture(bgTexture, 0, (void**)&pixels, &pitch);
+  if(SDL_LockTexture(bgTexture, 0, (void**)&pixels, &pitch)) {
+    printf("Failed to lock the texture\n");
+    SDL_GetError();
+    return;
+  }
 
   data = header_data;
 
@@ -267,7 +271,7 @@ void fb_render_bg() {
       g = pixel[1];
       b = pixel[2];
 
-      pixels[a * 733 + i] = r << 24 | g << 16 | b << 8 | SDL_ALPHA_OPAQUE;
+      pixels[a * 733 + i] = r << 16 | g << 8 | b;
     }
   }
 
@@ -433,7 +437,7 @@ void sda_sim_loop() {
           fb_clear((uint16_t * )info_fb, INFO_WIDTH, INFO_HEIGHT);
           SDL_SetRenderDrawColor(gRenderer2, 0, 0, 0, 0xFF);
           SDL_RenderClear(gRenderer2);
-          gTexture2 = SDL_CreateTexture(gRenderer2, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, INFO_WIDTH, INFO_HEIGHT);
+          gTexture2 = SDL_CreateTexture(gRenderer2, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, INFO_WIDTH, INFO_HEIGHT);
           info_window_enabled = 1;
         }
       }
@@ -455,7 +459,6 @@ void sda_sim_loop() {
       sdaAppCounter = 0;
     }
   }
-
   
   // this is noramlly in an irq, but in simulator we don't care
   svp_irq();
@@ -610,9 +613,9 @@ int main(int argc, char *argv[]) {
   SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 0xFF);
   SDL_RenderClear(gRenderer);
 
-  gTexture = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 320, 480);
+  gTexture = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, 320, 480);
 
-  bgTexture = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 455, 733);
+  bgTexture = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, 455, 733);
 
   srand(time(NULL));
 

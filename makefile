@@ -7,8 +7,9 @@ CFLAGS = -std=c99 -O3 -g -no-pie
 
 EMCFLAGS = -std=c99 -O3 -g
 
-EMSETTINGS =  --preload-file webdata@  -s USE_SDL=2 -s TOTAL_STACK=128MB -s ASSERTIONS=2 -s INITIAL_MEMORY=256MB -s ALLOW_MEMORY_GROWTH=1
+EMSETTINGS = --profiling --preload-file webdata@  -s USE_SDL=2 -s TOTAL_STACK=128MB -s ASSERTIONS=2 -s INITIAL_MEMORY=256MB -s ALLOW_MEMORY_GROWTH=1 -fsanitize=undefined
 
+# -fsanitize=address backtracks overflow, but sometimes borks...
 # -fsanitize=undefined -fsanitize-minimal-runtime -s EMULATE_FUNCTION_POINTER_CASTS=0 -s ASSERTIONS -s STACK_OVERFLOW_CHECK
 
 #  -s MAXIMUM_MEMORY=2gb -s ALLOW_MEMORY_GROWTH=1 -s EMULATE_FUNCTION_POINTER_CASTS=1 -s GLOBAL_BASE=2048  -fsanitize=address -fsanitize-minimal-runtime
@@ -79,10 +80,10 @@ clean:
 	$(RM) $(TARGET) $(OBJS) $(DEPS)
 
 sim_emcc:
-	emcc $(SRCS) $(EMCFLAGS) $(LIBS) $(DEFINES) -DLANG_EN -DWEBTARGET -DTOKEN_CACHE_DISABLED -o binweb/SDA_OS.html $(EMSETTINGS)
+	emcc $(SRCS) $(EMCFLAGS) $(LIBS) $(DEFINES) -DLANG_EN -DWEBTARGET -o binweb/SDA_OS.html $(EMSETTINGS)
 
 sim_emcc_cz:
-	emcc $(SRCS) $(EMCFLAGS) $(LIBS) $(DEFINES) -DLANG_EN -DWEBTARGET -DTOKEN_CACHE_DISABLED -o binweb/SDA_OS.html $(EMSETTINGS)
+	emcc $(SRCS) $(EMCFLAGS) $(LIBS) $(DEFINES) -DLANG_EN -DWEBTARGET -o binweb/SDA_OS.html $(EMSETTINGS)
 
 scan-build:
 	scan-build $(CC) $(CFLAGS) $(SRCS) $(LIBS) $(DEFINES) -DLANG_CZ -o BIN/SDA_OS_sim_cz

@@ -4,7 +4,9 @@
 extern svsVM svm;
 
 void svs_hardErrHandler() {
+  #ifndef WEBTARGET
   strTablePrint(&svm);
+  #endif
   printf("hard error occured: terminating!\n");
   #ifndef WEBTARGET
   exit(1);
