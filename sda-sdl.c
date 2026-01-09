@@ -538,6 +538,11 @@ void sda_sim_loop() {
 }
 
 
+void svp_haptic_fb(uint16_t time) {
+  printf("DBG: bzzzzzz\n");
+}
+
+
 void svp_beep() {
   if (svpSGlobal.mute == 1) 
     return;

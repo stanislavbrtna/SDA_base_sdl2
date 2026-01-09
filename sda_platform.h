@@ -24,4 +24,14 @@
 
 uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y);
 void info_window_reset();
+
+// Featureset
+
+#define SDA_FEATURE_NOTIF_VIBRO
+#define SDA_FEATURE_AMB_LIGHT_SENS
+#define SDA_FEATURE_IEXP_V2
+//#define SDA_FEATURE_PCM_SOUND
+#define SDA_FEATURE_EEXP_V1
+#define SDA_FEATURE_PERF_MODE
+
 #endif
