@@ -32,6 +32,6 @@ void info_window_reset();
 #define SDA_FEATURE_IEXP_V2
 //#define SDA_FEATURE_PCM_SOUND
 #define SDA_FEATURE_EEXP_V1
-#define SDA_FEATURE_PERF_MODE
+#define SDA_FEATURE_FREQ_SCALING
 
 #endif

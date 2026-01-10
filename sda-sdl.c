@@ -542,6 +542,10 @@ void svp_haptic_fb(uint16_t time) {
   printf("DBG: bzzzzzz\n");
 }
 
+void sda_set_perf_mode(sdaPwrModeType mode) {
+  printf("Setting perf mode: %u\n", mode);
+  svpSGlobal.pwrClockScalingMode = mode;
+}
 
 void svp_beep() {
   if (svpSGlobal.mute == 1) 
