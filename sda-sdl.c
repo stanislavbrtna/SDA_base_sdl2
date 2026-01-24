@@ -572,6 +572,35 @@ void svp_beep_set_def() {
   return;
 }
 
+static SDL_AudioSpec wav_spec;
+static Uint8 *wav_buffer;
+static Uint32 wav_length;
+SDL_AudioDeviceID wav_dev;
+
+
+void svp_play_wav(uint8_t *fname) {  
+  if (SDL_LoadWAV(fname, &wav_spec, &wav_buffer, &wav_length) == NULL) {
+    SDL_Log(
+      "Failed to load wav file %s: %s",
+      fname,
+      SDL_GetError()
+    );
+    return 1;
+  }
+  
+  if ((wav_dev = SDL_OpenAudioDevice(NULL, 0, &wav_spec, NULL, 0)) == 0) {
+    SDL_Log("Failed to open audio: %s", SDL_GetError());
+    return 1;
+  }
+  
+  // Play the sound
+  if (SDL_QueueAudio(wav_dev, wav_buffer, wav_length) != 0) {
+    SDL_Log("%s", SDL_GetError());
+  }
+  
+  SDL_PauseAudioDevice(wav_dev, 0);   // unpause
+}
+
 // taken from https://github.com/Grieverheart/sdl_tone_generator
 void audio_callback(void* userdata, uint8_t* stream, int len) {
     uint64_t* samples_played = (uint64_t*)userdata;
@@ -703,11 +732,16 @@ int main(int argc, char *argv[]) {
   printf("SDA_OS for the internetz!\n");
   emscripten_set_main_loop(sda_sim_loop, 30, 1);
   #else
+
+  svp_play_wav("test.wav");
   
   while (!quit) { // quit is handled only from SDL_QUIT
     sda_sim_loop();
   }
   #endif
+
+  SDL_CloseAudioDevice(wav_dev);
+  SDL_FreeWAV(wav_buffer);
 
   // Destroy window
   SDL_DestroyRenderer(gRenderer);

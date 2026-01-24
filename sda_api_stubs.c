@@ -40,6 +40,11 @@ void svp_set_backlight(uint8_t val){
   return;
 }
 
+void svp_set_volume(uint16_t val) {
+  printf("Setting PCM volume: %u\n", val);
+  return;
+}
+
 uint8_t sda_is_battery_measured() {
   return 0;
 }
