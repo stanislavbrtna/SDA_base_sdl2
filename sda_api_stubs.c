@@ -1,6 +1,10 @@
 #include "SDA_OS/SDA_OS.h"
 #include <stdlib.h>
 
+void sdl_play_wav(uint8_t *fname);
+void sdl_pause_wav(uint8_t pause_on);
+void sdl_stop_wav();
+
 extern svsVM svm;
 
 void svs_hardErrHandler() {
@@ -43,6 +47,18 @@ void svp_set_backlight(uint8_t val){
 void svp_set_volume(uint16_t val) {
   printf("Setting PCM volume: %u\n", val);
   return;
+}
+
+void sda_media_play(uint8_t* fname) {
+  sdl_play_wav(fname);
+}
+
+void sda_media_pause(uint8_t pause_on) {
+  sdl_pause_wav(pause_on);
+}
+
+void sda_media_stop() {
+  sdl_stop_wav();
 }
 
 uint8_t sda_is_battery_measured() {
