@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -609,11 +610,41 @@ void sdl_play_wav(uint8_t *fname) {
 
 void sdl_pause_wav(uint8_t pause_on) {
   SDL_PauseAudioDevice(wav_dev, (int) pause_on);
+  if(pause_on) {
+    Mix_Pause(-1);
+  } else {
+    Mix_Resume(-1);
+  }
 }
 
 void sdl_stop_wav() {
   if(wav_dev) {
     SDL_CloseAudioDevice(wav_dev);
+  }
+  Mix_HaltMusic();
+}
+
+void sdl_play_mp3(uint8_t *fname) {
+  int result;
+
+  int mixinitflags = MIX_INIT_OGG | MIX_INIT_MP3;
+  if (mixinitflags != (result = Mix_Init(mixinitflags))) {
+    printf("Could not initialize mixer (result: %d).\n", result);
+    printf("Mix_Init: %s\n", Mix_GetError());
+    exit(1);
+  }
+
+  Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 512);
+
+  Mix_Music *mp3music = Mix_LoadMUS(fname);
+  if (!mp3music) {
+    printf("%s: Error failed to load %s.\n", __FUNCTION__, fname);
+    return;
+  }
+  
+  if (Mix_PlayMusic(mp3music, -1) == -1) {
+    printf("%s: Error %s\n", __FUNCTION__, Mix_GetError());
+    return;
   }
 }
 

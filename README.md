@@ -7,7 +7,9 @@ You need to have C compiler installed on your machine and SDL2 library with its 
 
     build-essential
     libsdl2
+    libsdl2-mixer
     libsdl2-dev
+    libsdl2-mixer-dev
 
 Don't forget to update the submodules after pull:
 

@@ -46,11 +46,18 @@ void svp_set_backlight(uint8_t val){
 
 void svp_set_volume(uint16_t val) {
   printf("Setting PCM volume: %u\n", val);
+  Mix_VolumeMusic(val);
   return;
 }
 
 void sda_media_play(uint8_t* fname) {
-  sdl_play_wav(fname);
+  if(sda_validate_extension(fname, "wav")) {
+    sdl_play_wav(fname);
+  } else if(sda_validate_extension(fname, "mp3")) {
+    sdl_play_mp3(fname);
+  } else {
+    printf("%s: playback failed, unknown media type: %s\n", __FUNCTION__, fname);
+  }
 }
 
 void sda_media_pause(uint8_t pause_on) {
