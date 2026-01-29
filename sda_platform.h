@@ -34,4 +34,7 @@ void info_window_reset();
 #define SDA_FEATURE_EEXP_V1
 #define SDA_FEATURE_FREQ_SCALING
 
+#define MIN_PCM_VOLUME_VALUE 0
+#define MAX_PCM_VOLUME_VALUE 128
+
 #endif
