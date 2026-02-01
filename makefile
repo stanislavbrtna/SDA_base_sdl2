@@ -24,7 +24,7 @@ LANG = -DLANG_CZ
 BUILD_DIR ?= ./build
 
 SRCS := $(shell find "SDA_OS" -name "*.c")
-SRCS += sda-sdl.c sda_info_window.c sda_fs_pc.c sda_api_stubs.c
+SRCS += sda-sdl.c sda_info_window.c sda_fs_pc.c sda_api_stubs.c sda_media_utils.c utils/dr_mp3.c
 OBJS := $(addprefix $(BUILD_DIR),$(addprefix /, $(addsuffix .o,$(basename $(SRCS)))))
 
 all: sim_cz sim_en docs

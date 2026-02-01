@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "sda_fs_pc.h"
+#include "sda_media_utils.h"
 
 #define INFO_WIDTH 600
 #define INFO_HEIGHT 400

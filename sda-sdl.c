@@ -617,12 +617,17 @@ void sdl_pause_wav(uint8_t pause_on) {
   }
 }
 
+uint32_t playStart;
+
 void sdl_stop_wav() {
   if(wav_dev) {
     SDL_CloseAudioDevice(wav_dev);
   }
   Mix_HaltMusic();
+  playStart = 0;
 }
+
+
 
 void sdl_play_mp3(uint8_t *fname) {
   int result;
@@ -646,6 +651,8 @@ void sdl_play_mp3(uint8_t *fname) {
     printf("%s: Error %s\n", __FUNCTION__, Mix_GetError());
     return;
   }
+
+  playStart = svpSGlobal.uptime;
 }
 
 // taken from https://github.com/Grieverheart/sdl_tone_generator
