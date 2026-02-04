@@ -628,7 +628,6 @@ void sdl_stop_wav() {
 }
 
 
-
 void sdl_play_mp3(uint8_t *fname) {
   int result;
 
@@ -647,7 +646,7 @@ void sdl_play_mp3(uint8_t *fname) {
     return;
   }
   
-  if (Mix_PlayMusic(mp3music, -1) == -1) {
+  if (Mix_PlayMusic(mp3music, 1) == -1) {
     printf("%s: Error %s\n", __FUNCTION__, Mix_GetError());
     return;
   }
