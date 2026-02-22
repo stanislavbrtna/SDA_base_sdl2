@@ -60,10 +60,6 @@ void sda_media_play(uint8_t* fname) {
   }
 }
 
-void sda_media_pause(uint8_t pause_on) {
-  sdl_pause_wav(pause_on);
-}
-
 void sda_media_stop() {
   sdl_stop_wav();
 }

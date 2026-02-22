@@ -578,7 +578,6 @@ static Uint8 *wav_buffer;
 static Uint32 wav_length;
 SDL_AudioDeviceID wav_dev;
 
-
 void sdl_play_wav(uint8_t *fname) {
 
   if(wav_dev) {
