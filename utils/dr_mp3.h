@@ -427,6 +427,7 @@ typedef struct
     size_t dataConsumed;
     drmp3_uint8* pData;
     drmp3_bool32 atEnd;
+    drmp3dec_frame_info frameInfo;
     struct
     {
         const drmp3_uint8* pData;
@@ -2914,7 +2915,7 @@ static drmp3_uint32 drmp3_decode_next_frame_ex(drmp3* pMP3, drmp3d_sample_t* pPC
 static drmp3_uint32 drmp3_decode_next_frame(drmp3* pMP3)
 {
     DRMP3_ASSERT(pMP3 != NULL);
-    return drmp3_decode_next_frame_ex(pMP3, (drmp3d_sample_t*)pMP3->pcmFrames, NULL, NULL);
+    return drmp3_decode_next_frame_ex(pMP3, (drmp3d_sample_t*)pMP3->pcmFrames, &(pMP3->frameInfo), NULL);
 }
 
 #if 0

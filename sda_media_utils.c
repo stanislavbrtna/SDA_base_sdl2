@@ -77,10 +77,16 @@ uint32_t mp3play_getBitRate(uint8_t *fname) {
     return 0;
   }
 
-  uint32_t rate = (uint32_t) (((float)(svp_get_size_n(fname)-(uint32_t)mp3_info.streamStartOffset) / (float) mp3play_getDuration(fname)));
+  uint16_t buff[16];
+
+  drmp3_read_pcm_frames_s16(&mp3_info, 8, buff);
+
+  printf("mp3info: cbr:%u vbr:%u, rate: %u %u\n", mp3_info.isCBR, mp3_info.isVBR, mp3_info.mp3FrameSampleRate, mp3_info.frameInfo.bitrate_kbps);
+
+  uint32_t val = mp3_info.frameInfo.bitrate_kbps;
 
   drmp3_uninit(&mp3_info);
-  return rate;
+  return val;
 }
 
 uint32_t sda_media_getDuration(uint8_t* fname) {
