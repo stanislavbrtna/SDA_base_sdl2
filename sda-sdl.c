@@ -610,9 +610,9 @@ void sdl_play_wav(uint8_t *fname) {
 void sdl_pause_wav(uint8_t pause_on) {
   SDL_PauseAudioDevice(wav_dev, (int) pause_on);
   if(pause_on) {
-    Mix_Pause(-1);
+    Mix_PauseMusic();
   } else {
-    Mix_Resume(-1);
+    Mix_ResumeMusic();
   }
 }
 
