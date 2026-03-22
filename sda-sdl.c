@@ -536,6 +536,8 @@ void sda_sim_loop() {
   if (svpSGlobal.uptimeMs > beep_cnt) {
     SDL_PauseAudioDevice(audio_device_id, 1);
   }
+
+  updatePlaybacktime();
 }
 
 
@@ -577,6 +579,9 @@ static SDL_AudioSpec wav_spec;
 static Uint8 *wav_buffer;
 static Uint32 wav_length;
 SDL_AudioDeviceID wav_dev;
+uint8_t audioPausedFlag;
+uint32_t playStart;
+uint32_t playbackPos;
 
 void sdl_play_wav(uint8_t *fname) {
 
@@ -613,10 +618,10 @@ void sdl_pause_wav(uint8_t pause_on) {
     Mix_PauseMusic();
   } else {
     Mix_ResumeMusic();
+    playStart = svpSGlobal.uptime - playbackPos;
   }
+  audioPausedFlag = pause_on;
 }
-
-uint32_t playStart;
 
 void sdl_stop_wav() {
   if(wav_dev) {
@@ -624,8 +629,14 @@ void sdl_stop_wav() {
   }
   Mix_HaltMusic();
   playStart = 0;
+  audioPausedFlag = 1;
 }
 
+void updatePlaybacktime() {
+  if(!audioPausedFlag && svpSGlobal.uptime - playStart > playbackPos) {
+    playbackPos = svpSGlobal.uptime - playStart;
+  }
+}
 
 void sdl_play_mp3(uint8_t *fname) {
   int result;
@@ -651,6 +662,8 @@ void sdl_play_mp3(uint8_t *fname) {
   }
 
   playStart = svpSGlobal.uptime;
+  playbackPos = 0;
+  audioPausedFlag = 0;
 }
 
 // taken from https://github.com/Grieverheart/sdl_tone_generator

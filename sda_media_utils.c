@@ -107,16 +107,10 @@ uint8_t sda_media_seek(uint32_t seek_s) {
   return 0;
 }
 
-extern uint32_t playStart;
-extern svpStatusStruct svpSGlobal;
+extern uint32_t playbackPos;
 
 uint32_t sda_media_getPos() {
-  //printf("%s: getting pos in sim...\n", __FUNCTION__);
-  if(playStart != 0) {
-    return svpSGlobal.uptime - playStart;
-  } else {
-    return 0;
-  }
+  return playbackPos;
 }
 
 uint32_t mediaSampleRate;
