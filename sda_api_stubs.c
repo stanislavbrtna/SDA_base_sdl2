@@ -50,7 +50,7 @@ void svp_set_volume(uint16_t val) {
   return;
 }
 
-void sda_media_play(uint8_t* fname) {
+void sda_base_media_play(uint8_t* fname) {
   if(sda_validate_extension(fname, "wav")) {
     sdl_play_wav(fname);
   } else if(sda_validate_extension(fname, "mp3")) {
@@ -60,7 +60,7 @@ void sda_media_play(uint8_t* fname) {
   }
 }
 
-void sda_media_stop() {
+void sda_base_media_stop() {
   sdl_stop_wav();
 }
 

@@ -102,14 +102,16 @@ uint32_t sda_media_getDuration(uint8_t* fname) {
   return 0;
 }
 
-uint8_t sda_media_seek(uint32_t seek_s) {
+uint8_t sda_base_media_seek(uint32_t seek_s) {
   printf("%s: seek to: %us\n", __FUNCTION__, seek_s);
   return 0;
 }
 
 extern uint32_t playbackPos;
+extern uint32_t playStart;
 
-uint32_t sda_media_getPos() {
+uint32_t sda_base_media_getPos() {
+  if (playStart == 0) return 0; 
   return playbackPos;
 }
 
@@ -141,6 +143,6 @@ uint32_t sda_media_getBitRate(uint8_t* fname) {
   return 0;
 }
 
-void sda_media_pause(uint8_t pause_on) {
+void sda_base_media_pause(uint8_t pause_on) {
   sdl_pause_wav(pause_on);
 }
