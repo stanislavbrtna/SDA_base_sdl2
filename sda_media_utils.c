@@ -2,6 +2,8 @@
 #include "utils/dr_mp3.h"
 #include "SDA_OS/SDA_OS.h"
 
+void sdl_pause_wav(uint8_t pause_on);
+
 uint32_t wavplay_getDuration(uint8_t *fname) {
   svp_file fil;
   wav_header_t wavHeader;

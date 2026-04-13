@@ -68,6 +68,8 @@ volatile float beep_frequency;
 uint16_t beep_t;
 uint64_t beep_cnt;
 
+// local fns
+void updatePlaybacktime();
 
 // rng api
 uint32_t svp_random() {
@@ -596,12 +598,12 @@ void sdl_play_wav(uint8_t *fname) {
       fname,
       SDL_GetError()
     );
-    return 1;
+    return;
   }
   
   if ((wav_dev = SDL_OpenAudioDevice(NULL, 0, &wav_spec, NULL, 0)) == 0) {
     SDL_Log("Failed to open audio: %s", SDL_GetError());
-    return 1;
+    return;
   }
   
   // Play the sound

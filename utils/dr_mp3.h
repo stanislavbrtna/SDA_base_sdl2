@@ -2960,7 +2960,7 @@ static drmp3_bool32 drmp3_init_internal(drmp3* pMP3, drmp3_read_proc onRead, drm
     pMP3->allocationCallbacks = drmp3_copy_allocation_callbacks_or_defaults(pAllocationCallbacks);
 
     if (pMP3->allocationCallbacks.onFree == NULL || (pMP3->allocationCallbacks.onMalloc == NULL && pMP3->allocationCallbacks.onRealloc == NULL)) {
-        printf("invalid alloc\n");
+        //printf("invalid alloc\n");
         return DRMP3_FALSE;    /* Invalid allocation callbacks. */
     }
 
@@ -3050,7 +3050,7 @@ static drmp3_bool32 drmp3_init_internal(drmp3* pMP3, drmp3_read_proc onRead, drm
 
                 /* Seek back to the start. */
                 if (!onSeek(pUserData, 0, DRMP3_SEEK_SET)) {
-                    printf("seek fail\n");
+                    //printf("seek fail\n");
                     return DRMP3_FALSE; /* Failed to seek back to the start. */
                 }
 
@@ -3062,7 +3062,7 @@ static drmp3_bool32 drmp3_init_internal(drmp3* pMP3, drmp3_read_proc onRead, drm
             } else {
                 /* Failed to get the length of the stream. ID3v1 and APE tags cannot be skipped. */
                 if (!onSeek(pUserData, 0, DRMP3_SEEK_SET)) {
-                    printf("seekfail2\n");
+                    //printf("seekfail2\n");
                     return DRMP3_FALSE; /* Failed to seek back to the start. */
                 }
             }
@@ -3109,7 +3109,7 @@ static drmp3_bool32 drmp3_init_internal(drmp3* pMP3, drmp3_read_proc onRead, drm
                     /* Don't have a metadata callback, so just skip the tag. */
                     if (onSeek != NULL) {
                         if (!onSeek(pUserData, tagSize, DRMP3_SEEK_CUR)) {
-                            printf("tagfailed\n");
+                            //printf("tagfailed\n");
                             return DRMP3_FALSE; /* Failed to seek past the ID3v2 tag. */
                         }
                     } else {
@@ -3123,7 +3123,7 @@ static drmp3_bool32 drmp3_init_internal(drmp3* pMP3, drmp3_read_proc onRead, drm
                             }
 
                             if (onRead(pUserData, discard, bytesToRead) != bytesToRead) {
-                                printf("readfails\n");
+                                //printf("readfails\n");
                                 return DRMP3_FALSE; /* Failed to read data. */
                             }
 
@@ -3138,7 +3138,7 @@ static drmp3_bool32 drmp3_init_internal(drmp3* pMP3, drmp3_read_proc onRead, drm
                 /* Not an ID3v2 tag. Seek back to the start. */
                 if (onSeek != NULL) {
                     if (!onSeek(pUserData, 0, DRMP3_SEEK_SET)) {
-                        printf("seekfail2\n");
+                        //printf("seekfail2\n");
                         return DRMP3_FALSE; /* Failed to seek back to the start. */
                     }
                 } else {
@@ -3152,7 +3152,7 @@ static drmp3_bool32 drmp3_init_internal(drmp3* pMP3, drmp3_read_proc onRead, drm
             }
         } else {
             /* Failed to read the header. We can return false here. If we couldn't read 10 bytes there's no way we'll have a valid MP3 stream. */
-            printf("header failed\n");
+            //printf("header failed\n");
             return DRMP3_FALSE;
             
         }
@@ -3288,7 +3288,7 @@ static drmp3_bool32 drmp3_init_internal(drmp3* pMP3, drmp3_read_proc onRead, drm
     } else {
         /* Not a valid MP3 stream. */
         drmp3__free_from_callbacks(pMP3->pData, &pMP3->allocationCallbacks);    /* The call above may have allocated memory. Need to make sure it's freed before aborting. */
-        printf("not valid\n");
+        //printf("not valid\n");
         return DRMP3_FALSE;
     }
 
@@ -4034,21 +4034,21 @@ DRMP3_API drmp3_bool32 drmp3_init_file_with_metadata(drmp3* pMP3, const char* pF
     FILE* pFile;
 
     if (pMP3 == NULL) {
-        printf("fail pointer\n");
+        //printf("fail pointer\n");
         return DRMP3_FALSE;
     }
 
     DRMP3_ZERO_OBJECT(pMP3);
 
     if (drmp3_fopen(&pFile, pFilePath, "rb") != DRMP3_SUCCESS) {
-        printf("fail open\n");
+        //printf("fail open\n");
         return DRMP3_FALSE;
     }
 
     result = drmp3_init_internal(pMP3, drmp3__on_read_stdio, drmp3__on_seek_stdio, drmp3__on_tell_stdio, onMeta, (void*)pFile, pUserDataMeta, pAllocationCallbacks);
     if (result != DRMP3_TRUE) {
         fclose(pFile);
-        printf("fail init internal\n");
+        //printf("fail init internal\n");
         return result;
     }
 

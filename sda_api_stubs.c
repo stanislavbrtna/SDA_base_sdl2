@@ -1,9 +1,12 @@
 #include "SDA_OS/SDA_OS.h"
 #include <stdlib.h>
+#include <SDL2/SDL_mixer.h>
 
 void sdl_play_wav(uint8_t *fname);
 void sdl_pause_wav(uint8_t pause_on);
 void sdl_stop_wav();
+
+void sdl_play_mp3(uint8_t *fname);
 
 extern svsVM svm;
 

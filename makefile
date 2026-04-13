@@ -7,7 +7,7 @@ CFLAGS = -std=c99 -O3 -g -no-pie
 
 EMCFLAGS = -std=c99 -O3 -g
 
-EMSETTINGS = --profiling --preload-file webdata@  -s USE_SDL=2 -s TOTAL_STACK=128MB -s ASSERTIONS=2 -s INITIAL_MEMORY=256MB -s ALLOW_MEMORY_GROWTH=1 -fsanitize=undefined
+EMSETTINGS = --profiling --preload-file webdata@ -s USE_SDL_MIXER=2 -s USE_SDL=2 -s TOTAL_STACK=128MB -s ASSERTIONS=2 -s INITIAL_MEMORY=256MB -s ALLOW_MEMORY_GROWTH=1 -fsanitize=undefined
 
 # -fsanitize=address backtracks overflow, but sometimes borks...
 # -fsanitize=undefined -fsanitize-minimal-runtime -s EMULATE_FUNCTION_POINTER_CASTS=0 -s ASSERTIONS -s STACK_OVERFLOW_CHECK
