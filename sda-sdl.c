@@ -161,8 +161,8 @@ void DrawSwButtons(gr2EventType *btn, gr2EventType btn_off){
 
 static uint8_t showSimRedraw;
 
-void sdl_base_toggle_draw_debug() {
-  showSimRedraw = 1 - showSimRedraw;
+void sdl_base_set_draw_debug(uint8_t val) {
+  showSimRedraw = val;
 }
 
 // draws point in swfb

@@ -14,9 +14,7 @@ gr2Element info_elements[40];
 gr2Screen info_screens[10];
 uint8_t info_window_init;
 
-void info_window_reset() {
-  info_window_init = 0;
-}
+void info_window_reset() { info_window_init = 0; }
 
 /* Roadmap: reimplement this
   printf("SVS vm %s, (%lu): \n", s->vmName, (uint32_t) s);
@@ -59,7 +57,7 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   static uint16_t file_db_txt;
 
   static uint16_t file_cwd_txt;
-  static uint8_t  cwd_buff[156];
+  static uint8_t cwd_buff[156];
 
   static uint16_t elements_bar;
 
@@ -71,7 +69,7 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
 
   static uint16_t batt_bar;
   static uint16_t dbg_draw_btn;
-  
+
   if (info_window_init == 0) {
     gr2_init_context(&c_info, info_elements, 40, info_screens, 10);
     gr2_reset_context(&c_info);
@@ -96,14 +94,16 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     line++;
 
     gr2_add_text(1, line, 5, 1, "String mem:", scr, &c_info);
-    string_bar = gr2_add_progbar_v(6, line, 5, 1, svm.stringFieldMax, svm.stringFieldLen, scr, &c_info);
+    string_bar =
+        gr2_add_progbar_v(6, line, 5, 1, svm.stringFieldMax, svm.stringFieldLen, scr, &c_info);
 
     collect_button = gr2_add_button(12, 2, 5, 1, "GarbageCollect", scr, &c_info);
 
     line++;
 
     gr2_add_text(1, line, 6, 1, "GR2 elements:", scr, &c_info);
-    elements_bar = gr2_add_progbar_v(6, line, 5, 1, sda_app_con.elementsMax, sda_app_con.elementsUsed, scr, &c_info);
+    elements_bar = gr2_add_progbar_v(
+        6, line, 5, 1, sda_app_con.elementsMax, sda_app_con.elementsUsed, scr, &c_info);
 
     lock_txt = gr2_add_text(12, line, 6, 1, "N/A", scr, &c_info);
 
@@ -111,28 +111,28 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     line++;
 
     reset_button = gr2_add_button(1, line, 5, 1, "Reload app", scr, &c_info);
-    trigger_btn  = gr2_add_button(8, line, 4, 1, "Uart trigger", scr, &c_info);
-    pindbg_btn   = gr2_add_checkbox(13, line, 5, 1, "I/O Debug", scr, &c_info);
+    trigger_btn = gr2_add_button(8, line, 4, 1, "Uart trigger", scr, &c_info);
+    pindbg_btn = gr2_add_checkbox(13, line, 5, 1, "I/O Debug", scr, &c_info);
 
-    line +=1;
+    line += 1;
 
     procinfo_btn = gr2_add_button(13, line, 4, 1, "Proc Info", scr, &c_info);
     batt_bar = gr2_add_slider_h(1, line, 5, 1, 100, svpSGlobal.battPercentage, scr, &c_info);
     svminfo_btn = gr2_add_button(8, line, 4, 1, "Svm Info", scr, &c_info);
 
-    line +=1;
-    dbg_draw_btn = gr2_add_button(1, line, 4, 1, "DrawDebug", scr, &c_info);
-    line +=1;
+    line += 1;
+    dbg_draw_btn = gr2_add_checkbox(1, line, 5, 1, "DrawDebug", scr, &c_info);
+    line += 1;
 
     gr2_add_text(1, line, 6, 1, "Openned files:", scr, &c_info);
     gr2_add_text(8, line, 6, 1, "Working directory:", scr, &c_info);
     line++;
     file_conf_txt = gr2_add_text(1, line, 10, 1, "none", scr, &c_info);
-    file_cwd_txt  = gr2_add_text(8, line, 10, 1, "n/a", scr, &c_info);
+    file_cwd_txt = gr2_add_text(8, line, 10, 1, "n/a", scr, &c_info);
     line++;
-    file_csv_txt = gr2_add_text(1, line, 7, 1, "none", scr, &c_info); 
+    file_csv_txt = gr2_add_text(1, line, 7, 1, "none", scr, &c_info);
     line++;
-    file_db_txt  = gr2_add_text(1, line, 10, 1, "none", scr, &c_info);
+    file_db_txt = gr2_add_text(1, line, 10, 1, "none", scr, &c_info);
 
     info_window_init = 1;
   }
@@ -158,10 +158,10 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
 
   touchPrev = touch;
 
-  if(touchValid) {
+  if (touchValid) {
     gr2_touch_input(0, 0, INFO_WIDTH, INFO_HEIGHT, mouse_x, mouse_y, touchType, scr, &c_info);
   }
-  
+
   // redraw
   fb_used = INFO_FB;
   LCD_drawArea a;
@@ -176,7 +176,7 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     gr2_set_value(string_bar, svm.stringFieldLen, &c_info);
     gr2_set_value(elements_bar, sda_app_con.elementsUsed, &c_info);
     gr2_set_str(app_name, svmGetName(), &c_info);
-    if(svp_crypto_get_lock()) {
+    if (svp_crypto_get_lock()) {
       gr2_set_str(lock_txt, "Crypto unlocked", &c_info);
     } else {
       gr2_set_str(lock_txt, "Crypto locked", &c_info);
@@ -203,17 +203,17 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     svp_getcwd(cwd_buff, sizeof(cwd_buff));
     // lets live dangerously...
     int i = 0;
-    while(cwd_buff[i] != 0) {
-      if(cwd_buff[i] == 'B' && cwd_buff[i + 1] == 'I' && cwd_buff[i + 2] == 'N') {
+    while (cwd_buff[i] != 0) {
+      if (cwd_buff[i] == 'B' && cwd_buff[i + 1] == 'I' && cwd_buff[i + 2] == 'N') {
         i += 4;
         break;
       }
       i++;
     }
-    gr2_set_str(file_cwd_txt, (uint8_t*)((uint64_t)cwd_buff + (uint64_t) i), &c_info);
+    gr2_set_str(file_cwd_txt, (uint8_t *)((uint64_t)cwd_buff + (uint64_t)i), &c_info);
   }
 
-  if(gr2_get_event(reset_button, &c_info) == EV_RELEASED) {
+  if (gr2_get_event(reset_button, &c_info) == EV_RELEASED) {
     uint8_t namebuff[258];
     sda_strcp(svmGetName(), namebuff, sizeof(namebuff) - 1);
     svmCloseRunning();
@@ -221,14 +221,13 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   }
   gr2_clear_event(reset_button, &c_info);
 
-
-  if(gr2_get_event(collect_button, &c_info) == EV_RELEASED) {
+  if (gr2_get_event(collect_button, &c_info) == EV_RELEASED) {
     garbageCollect(-1, &svm);
     gr2_set_value(string_bar, svm.stringFieldLen, &c_info);
   }
   gr2_clear_event(collect_button, &c_info);
 
-  if(gr2_get_event(trigger_btn, &c_info) == EV_RELEASED) {
+  if (gr2_get_event(trigger_btn, &c_info) == EV_RELEASED) {
     if (sda_sim_serial_trigger == 0) {
       sda_sim_serial_trigger = 1;
       gr2_set_select(trigger_btn, 1, &c_info);
@@ -238,32 +237,32 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
       gr2_set_select(trigger_btn, 0, &c_info);
       sda_sim_serial_trigger = 0;
     }
-    
   }
   gr2_clear_event(trigger_btn, &c_info);
 
-  if(gr2_get_event(pindbg_btn, &c_info) == EV_RELEASED) {
-    sda_sim_set_pin_dbg((uint8_t) gr2_get_value(pindbg_btn, &c_info));
+  if (gr2_get_event(pindbg_btn, &c_info) == EV_RELEASED) {
+    sda_sim_set_pin_dbg((uint8_t)gr2_get_value(pindbg_btn, &c_info));
   }
   gr2_clear_event(pindbg_btn, &c_info);
 
-  if(gr2_get_event(procinfo_btn, &c_info) == EV_RELEASED) {
+  if (gr2_get_event(procinfo_btn, &c_info) == EV_RELEASED) {
     svmProcInfo();
   }
   gr2_clear_event(procinfo_btn, &c_info);
 
-  if(gr2_get_event(dbg_draw_btn, &c_info) == EV_RELEASED) {
-    sdl_base_toggle_draw_debug();
+  if (gr2_get_event(dbg_draw_btn, &c_info) == EV_RELEASED) {
+    sdl_base_set_draw_debug((uint8_t) gr2_get_value(dbg_draw_btn, &c_info));
   }
   gr2_clear_event(dbg_draw_btn, &c_info);
 
-  if(gr2_get_event(svminfo_btn, &c_info) == EV_RELEASED) {
-    //svsFunctionTablePrint(&svm);
+  if (gr2_get_event(svminfo_btn, &c_info) == EV_RELEASED) {
+    svsPrintUsedUp(&svm);
   }
   gr2_clear_event(svminfo_btn, &c_info);
 
-  if(gr2_get_event(batt_bar, &c_info)) {
-    svpSGlobal.battPercentage = gr2_get_value(batt_bar, &c_info) - gr2_get_value(batt_bar, &c_info)%5;
+  if (gr2_get_event(batt_bar, &c_info)) {
+    svpSGlobal.battPercentage =
+        gr2_get_value(batt_bar, &c_info) - gr2_get_value(batt_bar, &c_info) % 5;
   }
   gr2_clear_event(batt_bar, &c_info);
 
@@ -278,5 +277,4 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   LCD_set_y_size(y_size);
   LCD_set_orientation(orientation);
   fb_used = MAIN_FB;
-
 }
