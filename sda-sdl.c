@@ -159,35 +159,40 @@ void DrawSwButtons(gr2EventType *btn, gr2EventType btn_off){
 
 }
 
+static uint8_t showSimRedraw;
+
+void sdl_base_toggle_draw_debug() {
+  showSimRedraw = 1 - showSimRedraw;
+}
+
 // draws point in swfb
 void ExtDrawPoint(int x, int y, uint16_t color){
   if(fb_used == MAIN_FB) {
-    #ifdef SIM_SHOW_REDRAW
-    static uint8_t red_flag;
+    if(showSimRedraw) {
+      static uint8_t red_flag;
 
-    red_flag++;
+      red_flag++;
 
-    if (red_flag > 3){
-      red_flag = 0;
-    }
-    if (red_flag == 1) {
-      sw_fb[x][y] = 0xFE00;
-      draw_flag = 1;
+      if (red_flag > 8 + rand()%10) {
+        red_flag = 0;
+      }
+      if (red_flag == 1) {
+        sw_fb[x][y] = 0xFE00;
+        draw_flag = 1;
+      } else {
+        sw_fb[x][y] = color;
+        draw_flag = 1;
+      }
     } else {
+      if (x > 320) x = 319;
+      if (y > 480) y = 479;
+
+      if (x < 0) x = 0;
+      if (y < 0) y = 0;
+
       sw_fb[x][y] = color;
       draw_flag = 1;
     }
-
-    #else
-    if (x > 320) x = 319;
-    if (y > 480) y = 479;
-
-    if (x < 0) x = 0;
-    if (y < 0) y = 0;
-
-    sw_fb[x][y] = color;
-    draw_flag = 1;
-    #endif
   } else {
     if (x > INFO_WIDTH) x = INFO_WIDTH;
     if (y > INFO_HEIGHT) y = INFO_HEIGHT;

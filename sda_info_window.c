@@ -70,6 +70,7 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   static uint16_t svminfo_btn;
 
   static uint16_t batt_bar;
+  static uint16_t dbg_draw_btn;
   
   if (info_window_init == 0) {
     gr2_init_context(&c_info, info_elements, 40, info_screens, 10);
@@ -119,6 +120,8 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     batt_bar = gr2_add_slider_h(1, line, 5, 1, 100, svpSGlobal.battPercentage, scr, &c_info);
     svminfo_btn = gr2_add_button(8, line, 4, 1, "Svm Info", scr, &c_info);
 
+    line +=1;
+    dbg_draw_btn = gr2_add_button(1, line, 4, 1, "DrawDebug", scr, &c_info);
     line +=1;
 
     gr2_add_text(1, line, 6, 1, "Openned files:", scr, &c_info);
@@ -248,6 +251,11 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     svmProcInfo();
   }
   gr2_clear_event(procinfo_btn, &c_info);
+
+  if(gr2_get_event(dbg_draw_btn, &c_info) == EV_RELEASED) {
+    sdl_base_toggle_draw_debug();
+  }
+  gr2_clear_event(dbg_draw_btn, &c_info);
 
   if(gr2_get_event(svminfo_btn, &c_info) == EV_RELEASED) {
     //svsFunctionTablePrint(&svm);
