@@ -716,7 +716,38 @@ int main(int argc, char *argv[]) {
   btn_pos_y[5] = 650- 16;
 
   SDL_Init( SDL_INIT_VIDEO );
-  SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &window, &gRenderer) ;
+
+  int windowMouseX, windowMouseY;
+  SDL_GetGlobalMouseState(&windowMouseX, &windowMouseY);
+
+  SDL_Point mousePoint = { windowMouseX, windowMouseY };
+  int displayIndex = SDL_GetPointDisplayIndex(&mousePoint);
+
+  if (displayIndex < 0) {
+      displayIndex = 0;
+  }
+
+  window = SDL_CreateWindow(
+      "",
+      SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex),
+      SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex),
+      SCREEN_WIDTH,
+      SCREEN_HEIGHT,
+      SDL_WINDOW_SHOWN
+  );
+
+  if (window == NULL) {
+      SDL_Log("Window creation failed: %s", SDL_GetError());
+      return -1; 
+  }
+
+  gRenderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+  if (gRenderer == NULL) {
+      SDL_Log("Renderer creation failed: %s", SDL_GetError());
+      SDL_DestroyWindow(window);
+      return -1;
+  }
 
   fb_clear((uint16_t * )sw_fb, 320, 480);
 
