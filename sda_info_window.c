@@ -14,6 +14,8 @@ gr2Element info_elements[40];
 gr2Screen info_screens[10];
 uint8_t info_window_init;
 
+void sdl_base_set_draw_debug(uint8_t val);
+
 void info_window_reset() { info_window_init = 0; }
 
 /* Roadmap: reimplement this
@@ -176,7 +178,7 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     gr2_set_value(string_bar, svm.stringFieldLen, &c_info);
     gr2_set_value(elements_bar, sda_app_con.elementsUsed, &c_info);
     gr2_set_str(app_name, svmGetName(), &c_info);
-    if (svp_crypto_get_lock()) {
+    if (sda_crypto_get_lock()) {
       gr2_set_str(lock_txt, "Crypto unlocked", &c_info);
     } else {
       gr2_set_str(lock_txt, "Crypto locked", &c_info);
