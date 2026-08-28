@@ -589,6 +589,7 @@ SDL_AudioDeviceID wav_dev;
 uint8_t audioPausedFlag;
 uint32_t playStart;
 uint32_t playbackPos;
+uint32_t mediaDuration;
 
 void sdl_play_wav(uint8_t *fname) {
 
@@ -640,13 +641,19 @@ void sdl_stop_wav() {
 }
 
 void updatePlaybacktime() {
-  if(!audioPausedFlag && svpSGlobal.uptime - playStart > playbackPos) {
+  if(!audioPausedFlag && svpSGlobal.uptime - playStart > playbackPos && playbackPos < mediaDuration) {
     playbackPos = svpSGlobal.uptime - playStart;
+  
+    if(playbackPos >= mediaDuration) {
+      playbackPos = mediaDuration;
+      sda_media_finished_cb();
+    }
   }
 }
 
 void sdl_play_mp3(uint8_t *fname) {
   int result;
+  mediaDuration = mp3play_getDuration(fname);
 
   int mixinitflags = MIX_INIT_OGG | MIX_INIT_MP3;
   if (mixinitflags != (result = Mix_Init(mixinitflags))) {
