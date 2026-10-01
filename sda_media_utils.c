@@ -91,7 +91,7 @@ uint32_t mp3play_getBitRate(uint8_t *fname) {
   return val;
 }
 
-uint32_t sda_media_getDuration(uint8_t* fname) {
+uint32_t sda_base_media_getDuration(uint8_t* fname) {
   if(sda_validate_extension(fname, "wav")){
     return wavplay_getDuration(fname);
   } else if(sda_validate_extension(fname, "mp3")) {
@@ -119,7 +119,7 @@ uint32_t sda_base_media_getPos() {
 
 uint32_t mediaSampleRate;
 
-uint32_t sda_media_getSampleRate(uint8_t* fname) {
+uint32_t sda_base_media_getSampleRate(uint8_t* fname) {
   if(sda_validate_extension(fname, "wav")){
     return wavplay_getSampleRate(fname);
   } else if(sda_validate_extension(fname, "mp3")) {
@@ -132,7 +132,7 @@ uint32_t sda_media_getSampleRate(uint8_t* fname) {
   return 0;
 }
 
-uint32_t sda_media_getBitRate(uint8_t* fname) {
+uint32_t sda_base_media_getBitRate(uint8_t* fname) {
   if(sda_validate_extension(fname, "wav")){
     return 0;
   } else if(sda_validate_extension(fname, "mp3")) {
