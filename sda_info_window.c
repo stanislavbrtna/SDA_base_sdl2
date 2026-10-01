@@ -119,7 +119,7 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
     line += 1;
 
     procinfo_btn = gr2_add_button(13, line, 4, 1, "Proc Info", scr, &c_info);
-    batt_bar = gr2_add_slider_h(1, line, 5, 1, 100, svpSGlobal.battPercentage, scr, &c_info);
+    batt_bar = gr2_add_slider_h(1, line, 5, 1, 110, svpSGlobal.battPercentage, scr, &c_info);
     svminfo_btn = gr2_add_button(8, line, 4, 1, "Svm Info", scr, &c_info);
 
     line += 1;
@@ -263,8 +263,14 @@ uint8_t info_window_loop(uint8_t touch, uint32_t mouse_x, uint32_t mouse_y) {
   gr2_clear_event(svminfo_btn, &c_info);
 
   if (gr2_get_event(batt_bar, &c_info)) {
-    svpSGlobal.battPercentage =
+    if(gr2_get_value(batt_bar, &c_info) <= 100) {
+      svpSGlobal.battPercentage =
         gr2_get_value(batt_bar, &c_info) - gr2_get_value(batt_bar, &c_info) % 5;
+      svpSGlobal.powerSource = POWER_BATT;
+    } else {
+      svpSGlobal.battPercentage = 100;
+      svpSGlobal.powerSource = POWER_USB;
+    }
   }
   gr2_clear_event(batt_bar, &c_info);
 
