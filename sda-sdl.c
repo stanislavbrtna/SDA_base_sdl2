@@ -860,3 +860,25 @@ int main(int argc, char *argv[]) {
   SDL_Quit();
   return 0;
 }
+
+static uint16_t optsScr;
+static gr2context *devSysCon;
+static devTestBtn;
+
+uint16_t sda_base_get_dev_opts_scr(gr2context *c) {
+  devSysCon = c;
+
+  optsScr = gr2_add_screen(devSysCon);
+
+  gr2_add_text(1, 0, 10, 1, "Device: SDA Sim (native)", optsScr, devSysCon);
+
+  devTestBtn = gr2_add_button(1, 2, 5, 3, "Test", optsScr, devSysCon);
+
+  return optsScr;
+}
+
+uint16_t sda_base_handle_dev_opts_scr() {
+  if(gr2_clicked(devTestBtn, devSysCon)) {
+    printf("Hello world\n");
+  }
+}

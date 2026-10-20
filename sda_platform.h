@@ -18,4 +18,6 @@ void info_window_reset();
 #define SDA_FEATURE_EEXP_V1
 #define SDA_FEATURE_FREQ_SCALING
 
+#define SDA_FEATURE_DEVICE_OPTIONS
+
 #endif
