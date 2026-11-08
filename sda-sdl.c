@@ -651,6 +651,8 @@ void updatePlaybacktime() {
   }
 }
 
+uint32_t mp3play_getDuration(uint8_t *fname);
+
 void sdl_play_mp3(uint8_t *fname) {
   int result;
   mediaDuration = mp3play_getDuration(fname);
@@ -863,7 +865,7 @@ int main(int argc, char *argv[]) {
 
 static uint16_t optsScr;
 static gr2context *devSysCon;
-static devTestBtn;
+static uint16_t devTestBtn;
 
 uint16_t sda_base_get_dev_opts_scr(gr2context *c) {
   devSysCon = c;
